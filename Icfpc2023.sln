@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Icfpc2023", "Icfpc2023\Icfpc2023.fsproj", "{0D699EA5-9955-44A0-9AF4-60558EE8F972}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{76FD99D3-AC9E-48A8-BEAA-3986DAA097F2}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Icfpc2023.Tests", "Icfpc2023.Tests\Icfpc2023.Tests.fsproj", "{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1890466B-F3F5-4736-8E1E-A9F8A8C8F5EA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{6B1BF6CA-A5FA-4F67-BB7A-35B27E7FE24C}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\main.yml = .github\workflows\main.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".vscode", ".vscode", "{CB48F15A-932B-462A-BA0F-51FEF4BDB9D9}"
+	ProjectSection(SolutionItems) = preProject
+		.vscode\tasks.json = .vscode\tasks.json
+		.vscode\launch.json = .vscode\launch.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D699EA5-9955-44A0-9AF4-60558EE8F972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D699EA5-9955-44A0-9AF4-60558EE8F972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D699EA5-9955-44A0-9AF4-60558EE8F972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D699EA5-9955-44A0-9AF4-60558EE8F972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6B1BF6CA-A5FA-4F67-BB7A-35B27E7FE24C} = {1890466B-F3F5-4736-8E1E-A9F8A8C8F5EA}
+	EndGlobalSection
+EndGlobal

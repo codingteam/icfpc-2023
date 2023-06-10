@@ -1,0 +1,53 @@
+icfpc-2023
+==========
+codingteam's submission for the ICFP Contest 2023.
+
+https://icfpcontest2023.github.io/
+- July 7th, 12:00 UTC (noon) to July 10th, 12:00 UTC
+
+Prerequisites
+-------------
+.NET SDK 7.0 is required. Get it for your platform at https://dotnet.microsoft.com/en-us/download (binary installers are available as well as packages for various Linux distributions).
+
+About F#
+--------
+- https://thomasbandt.com/fsharp-introduction
+- https://learnxinyminutes.com/docs/fsharp/
+- Just ask @ForNeVeR
+
+Build
+-----
+```console
+$ dotnet build
+```
+
+Run
+---
+```console
+$ dotnet run
+```
+
+Run Tests
+---------
+```console
+$ dotnet test
+```
+
+How to Develop
+--------------
+See https://dotnet.microsoft.com/en-us/languages/fsharp/tools for the main options.
+
+Fee free to use editor of choice, but the easiest tools to get started are:
+
+- Visual Studio (Windows-only)
+  - Community Edition is free and should be okay for this project
+  - Open `Infpc2023.sln` and then press the **Run** button
+
+- Visual Studio Code with Ionide extension (cross-platform)
+  - Totally free
+  - Open the solution folder (the one with the `.sln` file), install the Ionide extension, and then use the **Run and Debug** tool window to execute the project
+
+- JetBrains Rider (cross-platform)
+  - Commercial
+  - Free EAP and trial builds are available and are okay to use for this project (I, @ForNeVeR, use EAP myself)
+  - Open the `.sln` file and then hit the green **Run** button to get started
