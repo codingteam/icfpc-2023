@@ -24,7 +24,9 @@ $ dotnet build
 Run
 ---
 ```console
-$ dotnet run
+$ dotnet run --project Icfpc2023
+    # or, alternately:
+$ cd Icfpc2023 && dotnet run
 ```
 
 Run Tests
