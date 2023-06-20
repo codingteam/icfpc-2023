@@ -13,7 +13,7 @@ About F#
 --------
 - https://thomasbandt.com/fsharp-introduction
 - https://learnxinyminutes.com/docs/fsharp/
-- Just ask @ForNeVeR
+- Just ask @ForNeVeR or @gsomix
 
 Build
 -----
@@ -53,3 +53,5 @@ Fee free to use editor of choice, but the easiest tools to get started are:
   - Commercial
   - Free EAP and trial builds are available and are okay to use for this project (I, @ForNeVeR, use EAP myself)
   - Open the `.sln` file and then hit the green **Run** button to get started
+
+Other viable options are [Vim](https://github.com/ionide/Ionide-vim), [Emacs](https://github.com/fsharp/emacs-fsharp-mode), and any editor with LSP support via [FsAutoComplete](https://github.com/fsharp/FsAutoComplete).
