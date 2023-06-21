@@ -13,6 +13,7 @@ About F#
 --------
 - https://thomasbandt.com/fsharp-introduction
 - https://learnxinyminutes.com/docs/fsharp/
+- https://fsharp.github.io/fsharp-core-docs/
 - Just ask @ForNeVeR or @gsomix
 
 Build
