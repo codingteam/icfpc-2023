@@ -39,7 +39,7 @@ def distance_point_line(line, point, B1, B2):
 # lambda changes behavior of gate
 def lambda_factor(labda, Ai, Mj, Mjt):
   line_Ai_Mj = line_parameter(Ai, Mj) # (a, b, c) typle
-  point_Mjt = (Mjt.x, Mjt.y) # (x0, y0) type
+  point_Mjt = (Mjt.x, Mjt.y) # (x0, y0) typle
   return 2. / math.pi * math.atan(labda*(distance_point_line(line_Ai_Mj, Mjt) - OVERLAP_DISTANCE)) + 1
 
 # lambda score between A_i and M_j
@@ -48,12 +48,20 @@ def lambda_factor(labda, Ai, Mj, Mjt):
 # M - Musician, j-th
 # T - taste matrix
 # lambda - parameter; exact solution when -> infty
-def lambda_score_ij(A, M, i, j, T, labda):
+def lambda_score_AiMj(A, M, i, j, T, labda):
   res = T[i,j] // distance2_point(A[i], M[j])
   for jt in range(0, len(M)):
     if jt != j:
       res *= lambda_factor(labda, A[i], M[j], M[jt])
   return res
+
+# lambda score between M_i and M_j
+#
+# M - Musician, i-th
+# M - Musician, j-th
+# lambda - parameter; exact solution when -> infty
+def lambda_score_MiMj(M, i, j, labda):
+  pass
 
 # to test
 class Point:
