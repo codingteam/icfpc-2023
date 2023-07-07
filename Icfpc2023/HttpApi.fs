@@ -14,6 +14,10 @@ type ProblemMetaInfo = {
     NumberOfProblems: int
 }
 
+type ProblemDef = {
+    Success: string
+}
+
 let GetProblemCount(): Task<int> = task {
     use client = new HttpClient()
     let! body = client.GetStringAsync "https://api.icfpcontest.com/problems"
@@ -22,7 +26,8 @@ let GetProblemCount(): Task<int> = task {
 
 let DownloadProblem(number: int): Task<string> = task {
     use client = new HttpClient()
-    return! client.GetStringAsync $"https://cdn.icfpcontest.com/problems/{string number}.json"
+    let! body = client.GetStringAsync $"https://api.icfpcontest.com/problem?problem_id={string number}"
+    return JsonConvert.DeserializeObject<ProblemDef>(body).Success
 }
 
 let SubmissionUrl = "https://api.icfpcontest.com/submission"
