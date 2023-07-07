@@ -45,12 +45,22 @@ let ReadProblemFromJson(json: string): Problem =
         Attendees = problem.attendees |> Array.map(fun a -> { X = a.x; Y = a.y; Tastes = a.tastes })
     }
 
-let ReadProblemFromFile(filePath: string): Problem =
-    let json = File.ReadAllText(filePath)
-    ReadProblemFromJson json
-
 let WriteSolutionToJson(solution: Solution): string =
     let solJson = {
         placements = solution.Placements |> Array.map(fun p -> { x = p.X; y = p.Y })
     }
     JsonConvert.SerializeObject(solJson)
+
+let ReadSolutionFromJson(json: string): Solution =
+    let solJson = JsonConvert.DeserializeObject<SolutionJson>(json)
+    {
+        Placements = solJson.placements |> Array.map(fun p -> PointD(p.x, p.y))
+    }
+
+let ReadProblemFromFile(filePath: string): Problem =
+    let json = File.ReadAllText(filePath)
+    ReadProblemFromJson json
+
+let ReadSolutionFromFile(filePath: string): Solution =
+    let json = File.ReadAllText(filePath)
+    ReadSolutionFromJson json

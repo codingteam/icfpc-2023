@@ -37,6 +37,8 @@ $ cd Icfpc2023 && dotnet run -- [arguments here…]
 ```
 
 ### Commands
+
+#### HTTP
 Download all problems:
 ```console
 $ dotnet run --project Icfpc2023 -- download all
@@ -45,6 +47,17 @@ $ dotnet run --project Icfpc2023 -- download all
 Upload all solutions from the `solutions/` directory:
 ```
 $ dotnet run --project Icfpc2023 -- upload all
+```
+
+#### Solution
+Solve problem 1 using dummy solver:
+```console
+$ dotnet run --project Icfpc2023 -- solve 1 dummy
+```
+
+Calculate score for solution 1 on problem 1:
+```console
+$ dotnet run --project Icfpc2023 -- score 1
 ```
 
 #### Legacy
