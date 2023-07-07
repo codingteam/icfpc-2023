@@ -29,6 +29,10 @@ let readToken() =
         failwith $"Please save the access token to file \"{tokenFile}\"."
     File.ReadAllText(tokenFile).Trim()
 
+let solvers = Map [
+    "dummy", DummySolver.Solve
+]
+
 [<EntryPoint>]
 let main(args: string[]): int =
     Console.OutputEncoding <- Encoding.UTF8
@@ -52,11 +56,12 @@ let main(args: string[]): int =
         printfn $"Downloading problem {num} to \"{filePath}\"…"
         File.WriteAllText(filePath, content)
 
-    | [| "solve"; numStr; "dummy" |] ->
+    | [| "solve"; numStr; solverStr |] ->
         let num = int numStr
         let problemFile = Path.Combine(problemsDir, $"{num}.json")
         let problem = JsonDefs.ReadProblemFromFile problemFile
-        let solution = DummySolver.Solve problem
+        let solver = solvers[solverStr]
+        let solution = solver problem
         let solutionFile = Path.Combine(solutionsDir, $"{num}.json")
         let solutionText = JsonDefs.WriteSolutionToJson solution
         File.WriteAllText(solutionFile, solutionText)
