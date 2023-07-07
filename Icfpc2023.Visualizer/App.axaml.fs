@@ -1,4 +1,5 @@
 namespace Icfpc2023.Visualizer
+namespace Icfpc2023.Visualizer
 
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes

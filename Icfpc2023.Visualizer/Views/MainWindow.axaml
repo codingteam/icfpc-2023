@@ -18,6 +18,6 @@
 
     <Grid RowDefinitions="Auto,*">
         <Button Content="Load Problem File…" />
-        <views:FieldView Grid.Row="1" />
+        <views:FieldView Grid.Row="1" DataContext="{Binding Field}" />
     </Grid>
 </Window>
