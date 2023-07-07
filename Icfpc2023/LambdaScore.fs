@@ -52,6 +52,32 @@ let lambda_score_AiMj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: doub
       res <- res * lambda_factor(lambda, A[i], M[j], M[jt])
   res
 
+// lambda score derivative between A_i and M_j over M_j
+//
+// A - Attendee, i-th
+// M - Musician, j-th
+// T - taste matrix
+// lambda - parameter; exact solution when -> infty
+// NOTE: derivatives over lambda_factor are not implemented yet
+let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: double) =
+  let mutable res1 = PointD(-2.0 * T[i,j] * (A[i].X - M[j].X) / (A[i].SquaredDistanceTo(M[j])) ** 2.0,
+                            -2.0 * T[i,j] * (A[i].Y - M[j].Y) / (A[i].SquaredDistanceTo(M[j])) ** 2.0)
+  let mutable res2 = PointD(0, 0)
+  for jt in Enumerable.Range(0, M.Length) do
+    if jt <> j then
+      res1 <- res1 * lambda_factor(lambda, A[i], M[j], M[jt])
+  for jtt in Enumerable.Range(0, M.Length) do
+    if jtt <> j then
+      let mutable tmpX = lambda_factor(lambda, A[i], M[j], M[jtt]) // deriv over X
+      let mutable tmpY = lambda_factor(lambda, A[i], M[j], M[jtt]) // deriv over Y
+      for jt in Enumerable.Range(0, M.Length) do
+        if jt <> j || jt <> jtt then
+          tmpX <- tmpX * lambda_factor(lambda, A[i], M[j], M[jtt])
+          tmpY <- tmpY * lambda_factor(lambda, A[i], M[j], M[jtt])
+      res2 <- res2 + PointD(tmpX, tmpY)
+  res2 <- res2 * (T[i,j] / A[i].SquaredDistanceTo(M[j]))
+  res1 + res2
+
 // lambda score between Mi and Mj
 //
 // Mi - Musician, i-th
