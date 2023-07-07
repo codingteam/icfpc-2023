@@ -36,7 +36,6 @@ let distance_point_line(line, P: PointD, B1: PointD, B2: PointD) =
 // lambda changes behavior of gate
 let lambda_factor(lambda: double, Ai: PointD, Mj: PointD, Mjt: PointD) =
   let line_Ai_Mj = line_parameter(Ai, Mj) // (a, b, c) typle
-  let point_Mjt = (Mjt.X, Mjt.Y) // (x0, y0) typle
   2. / Math.PI * atan(lambda*(distance_point_line(line_Ai_Mj, Mjt, Ai, Mj) - OVERLAP_DISTANCE)) + 1.0
 
 // lambda score between A_i and M_j
