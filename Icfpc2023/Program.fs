@@ -30,6 +30,17 @@ let main(args: string[]): int =
     Console.OutputEncoding <- Encoding.UTF8
 
     match args with
+    | [| "download"; "all" |] ->
+        runSynchronouslyV <| task {
+            let problemsDir = Path.Combine(solutionDirectory, "problems")
+            Directory.CreateDirectory problemsDir |> ignore
+            let! count = GetProblemCount()
+            for i in 1..count do
+                let! content = DownloadProblem i
+                let filePath = Path.Combine(problemsDir, $"{string i}.json")
+                printfn $"Downloading problem {i} to \"{filePath}\"…"
+                File.WriteAllText(filePath, content)
+        }
     | [|"download"; numStr|] ->
         let num = int numStr
         let problemsDir = Path.Combine(solutionDirectory, "problems")

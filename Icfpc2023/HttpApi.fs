@@ -8,6 +8,18 @@ open System.Text
 open System.Threading.Tasks
 open Newtonsoft.Json
 
+// api.icfpcontest.com/problems
+type ProblemMetaInfo = {
+    [<JsonProperty("number_of_problems")>]
+    NumberOfProblems: int
+}
+
+let GetProblemCount(): Task<int> = task {
+    use client = new HttpClient()
+    let! body = client.GetStringAsync "https://api.icfpcontest.com/problems"
+    return JsonConvert.DeserializeObject<ProblemMetaInfo>(body).NumberOfProblems
+}
+
 let DownloadProblem(number: int): Task<string> = task {
     use client = new HttpClient()
     return! client.GetStringAsync $"https://cdn.icfpcontest.com/problems/{string number}.json"
