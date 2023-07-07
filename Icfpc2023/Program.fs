@@ -1,4 +1,4 @@
-﻿open System
+open System
 open System.IO
 open System.Text
 open System.Threading.Tasks
@@ -47,11 +47,10 @@ let main(args: string[]): int =
     | [|"download"; numStr|] ->
         let num = int numStr
         Directory.CreateDirectory problemsDir |> ignore
-        for i in 1..num do
-            let content = runSynchronously <| DownloadProblem i
-            let filePath = Path.Combine(problemsDir, $"{string i}.json")
-            printfn $"Downloading problem {i} to \"{filePath}\"…"
-            File.WriteAllText(filePath, content)
+        let content = runSynchronously <| DownloadProblem num
+        let filePath = Path.Combine(problemsDir, $"{string num}.json")
+        printfn $"Downloading problem {num} to \"{filePath}\"…"
+        File.WriteAllText(filePath, content)
 
     | [| "solve"; numStr; "dummy" |] ->
         let num = int numStr
