@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    </PropertyGroup>
+
+
+    <ItemGroup>
+        <Folder Include="Models\"/>
+        <AvaloniaResource Include="Assets\**"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="ViewModels\ViewModelBase.fs"/>
+        <Compile Include="ViewModels\MainWindowViewModel.fs"/>
+        <Compile Include="ViewModels\FieldViewModel.fs" />
+        <Compile Include="Views\MainWindow.axaml.fs"/>
+        <Compile Include="Views\FieldView.fs" />
+        <Compile Include="ViewLocator.fs"/>
+        <Compile Include="App.axaml.fs"/>
+        <Compile Include="Program.fs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.0.0"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.0.0"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.0"/>
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.0"/>
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0"/>
+    </ItemGroup>
+</Project>

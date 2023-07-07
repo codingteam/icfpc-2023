@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".vscode", ".vscode", "{CB48
 		.vscode\launch.json = .vscode\launch.json
 	EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Icfpc2023.Visualizer", "Icfpc2023.Visualizer\Icfpc2023.Visualizer.fsproj", "{130E46FD-A86E-471B-AE7F-CBF9059939D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FE3536B-FCDE-4263-A97F-25F0E8ED36E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{130E46FD-A86E-471B-AE7F-CBF9059939D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{130E46FD-A86E-471B-AE7F-CBF9059939D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{130E46FD-A86E-471B-AE7F-CBF9059939D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{130E46FD-A86E-471B-AE7F-CBF9059939D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6B1BF6CA-A5FA-4F67-BB7A-35B27E7FE24C} = {1890466B-F3F5-4736-8E1E-A9F8A8C8F5EA}
