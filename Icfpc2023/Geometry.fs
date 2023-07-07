@@ -12,6 +12,7 @@ type PointD =
     member this.DistanceTo(p: PointD): double =
         sqrt <| this.SquaredDistanceTo p
     static member (+) (a: PointD, b: PointD) = PointD(a.X + b.X, a.Y + b.Y)
+    static member (*) (p: PointD, k: double) = PointD(p.X * k, p.Y * k)
 
 [<Struct>]
 type Stadium =
