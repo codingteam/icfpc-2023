@@ -126,10 +126,12 @@ let main(args: string[]): int =
         let token = readToken()
         let solutions = Directory.GetFiles(solutionsDir, "*.json")
         for solution in solutions do
-            printfn $"Uploading solution \"{Path.GetFileName solution}\"…"
-            let problemNumber = Path.GetFileNameWithoutExtension solution |> int
-            let submission = { ProblemId = problemNumber; Contents = File.ReadAllText(solution) }
-            runSynchronouslyV <| Upload(submission, token)
+            let filename = Path.GetFileName solution
+            if not(filename.EndsWith(".score.json")) then
+                printfn $"Uploading solution \"{filename}\"…"
+                let problemNumber = Path.GetFileNameWithoutExtension solution |> int
+                let submission = { ProblemId = problemNumber; Contents = File.ReadAllText(solution) }
+                runSynchronouslyV <| Upload(submission, token)
 
     | [| "lambdaScore" |] ->
         printfn "Nothing."
