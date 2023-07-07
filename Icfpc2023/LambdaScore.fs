@@ -14,7 +14,7 @@ let attendeesPositions (problem: Problem) =
 
 let tasteMatrix (problem: Problem) =
     Array2D.init problem.Attendees.Length problem.Musicians.Length (fun i j ->
-        problem.Attendees[i].Tastes[j]
+        problem.Attendees[i].Tastes[problem.Musicians[j]]
     )
 
 // compute parameters of line a*x + b*y + c = 0 which pass through A and M points
