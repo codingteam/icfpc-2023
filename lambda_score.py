@@ -26,9 +26,13 @@ def distance_point_line(line, point, B1, B2):
   x0, y0 = point
   x_line = (b*( b*x0 - a*y0) - a*c) / (a*a + b*b)
   y_line = (a*(-b*x0 + a*y0) - b*c) / (a*a + b*b)
-  if (B1.x <= x_line <= B2.x) and (B1.y <= y_line <= B2.y):
+  if B1.x > x_line and B2.x > x_line:
     return 1000.0
-  if (B1.x => x_line => B2.x) and (B1.y => y_line => B2.y):
+  if B1.x < x_line and B2.x < x_line:
+    return 1000.0
+  if B1.y > y_line and B2.y > y_line:
+    return 1000.0
+  if B1.y < y_line and B2.y < y_line:
     return 1000.0
   return distance_point(Point(x0, y0), Point(x_line, y_line))
 
