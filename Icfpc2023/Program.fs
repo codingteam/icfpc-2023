@@ -33,6 +33,11 @@ let solvers = Map [
     "dummy", DummySolver.Solve
 ]
 
+let writeSolutionScore i score =
+    let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
+    let solutionScoreText = JsonDefs.WriteSolutionScoreToJson score
+    File.WriteAllText(solutionScoreFile, solutionScoreText)
+
 let readProblem i =
     let problemFile = Path.Combine(problemsDir, $"{i}.json")
     JsonDefs.ReadProblemFromFile problemFile
@@ -41,15 +46,12 @@ let readSolution i =
     let solutionFile = Path.Combine(solutionsDir, $"{i}.json")
     JsonDefs.ReadSolutionFromFile solutionFile
 
-let writeSolution i solution =
+let writeSolution i solution score =
     let solutionFile = Path.Combine(solutionsDir, $"{i}.json")
     let solutionText = JsonDefs.WriteSolutionToJson solution
     File.WriteAllText(solutionFile, solutionText)
 
-let writeSolutionScore i score =
-    let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
-    let solutionScoreText = JsonDefs.WriteSolutionScoreToJson score
-    File.WriteAllText(solutionScoreFile, solutionScoreText)
+    writeSolutionScore i score
 
 let getExistingScore i problem =
     let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
@@ -90,7 +92,8 @@ let main(args: string[]): int =
         let problem = readProblem num
         let solver = solvers[solverStr]
         let solution = solver problem
-        writeSolution num solution
+        let score = Scoring.CalculateScore problem solution
+        writeSolution num solution score
 
     | [| "solveBest"; numStr; solverStr |] ->
         let num = int numStr
@@ -108,7 +111,7 @@ let main(args: string[]): int =
         printfn $"Score for problem {num}: {oldScore} -> {newScore} (%+f{diff} / %+.0f{diff_percent}%%)"
         if newScore > oldScore then
             printfn $"Writing solution..."
-            writeSolution num newSolution
+            writeSolution num newSolution newScore
         else
             printfn "Do nothing!"
 
