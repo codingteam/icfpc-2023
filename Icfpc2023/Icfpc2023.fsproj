@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <Compile Include="Domain.fs" />
+    <Compile Include="Scoring.fs" />
+    <Compile Include="DummySolver.fs" />
     <Compile Include="JsonDefs.fs" />
     <Compile Include="HttpApi.fs" />
     <Compile Include="Program.fs" />

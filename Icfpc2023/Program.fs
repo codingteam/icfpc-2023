@@ -3,6 +3,7 @@ open System.IO
 open System.Text
 open System.Threading.Tasks
 
+open Icfpc2023
 open Icfpc2023.HttpApi
 
 let solutionDirectory =
@@ -12,6 +13,9 @@ let solutionDirectory =
     if isNull directory then
         failwith $"Cannot find root solution dir starting from path \"{Environment.CurrentDirectory}\"."
     directory
+
+let problemsDir = Path.Combine(solutionDirectory, "problems")
+let solutionsDir = Path.Combine(solutionDirectory, "solutions")
 
 let runSynchronously(t: Task<'a>) =
     t.GetAwaiter().GetResult()
@@ -32,7 +36,6 @@ let main(args: string[]): int =
     match args with
     | [| "download"; "all" |] ->
         runSynchronouslyV <| task {
-            let problemsDir = Path.Combine(solutionDirectory, "problems")
             Directory.CreateDirectory problemsDir |> ignore
             let! count = GetProblemCount()
             for i in 1..count do
@@ -43,22 +46,40 @@ let main(args: string[]): int =
         }
     | [|"download"; numStr|] ->
         let num = int numStr
-        let problemsDir = Path.Combine(solutionDirectory, "problems")
         Directory.CreateDirectory problemsDir |> ignore
         for i in 1..num do
             let content = runSynchronously <| DownloadProblem i
             let filePath = Path.Combine(problemsDir, $"{string i}.json")
             printfn $"Downloading problem {i} to \"{filePath}\"…"
             File.WriteAllText(filePath, content)
+
+    | [| "solve"; numStr; "dummy" |] ->
+        let num = int numStr
+        let problemFile = Path.Combine(problemsDir, $"{num}.json")
+        let problem = JsonDefs.ReadProblemFromFile problemFile
+        let solution = DummySolver.Solve problem
+        let solutionFile = Path.Combine(solutionsDir, $"{num}.json")
+        let solutionText = JsonDefs.WriteSolutionToJson solution
+        File.WriteAllText(solutionFile, solutionText)
+
+    | [| "score"; numStr |] ->
+        let num = int numStr
+        let problemFile = Path.Combine(problemsDir, $"{num}.json")
+        let solutionFile = Path.Combine(solutionsDir, $"{num}.json")
+        let problem = JsonDefs.ReadProblemFromFile problemFile
+        let solution = JsonDefs.ReadSolutionFromFile solutionFile
+        let score = Scoring.CalculateScore problem solution
+        printfn $"Score: {string score}"
+
     | [|"upload"; "all"|] ->
         let token = readToken()
-        let solutionsDir = Path.Combine(solutionDirectory, "solutions")
         let solutions = Directory.GetFiles(solutionsDir, "*.json")
         for solution in solutions do
             printfn $"Uploading solution \"{Path.GetFileName solution}\"…"
             let problemNumber = Path.GetFileNameWithoutExtension solution |> int
             let submission = { ProblemId = problemNumber; Contents = File.ReadAllText(solution) }
             runSynchronouslyV <| Upload(submission, token)
+
     | _ -> printfn "Command unrecognized."
 
     0
