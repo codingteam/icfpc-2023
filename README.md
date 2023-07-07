@@ -34,6 +34,13 @@ $ dotnet run --project Icfpc2023
 $ cd Icfpc2023 && dotnet run
 ```
 
+### Commands
+Download first 3 problems:
+
+```console
+$ dotnet run --project Icfpc2023 -- download 3
+```
+
 Run Tests
 ---------
 ```console
