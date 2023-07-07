@@ -6,6 +6,17 @@ open System.Linq
 let OVERLAP_DISTANCE = 5.0
 let MUSICAL_MIN_DISTANCE = 10.0
 
+let attendeesPositions (problem: Problem) =
+    Array.init problem.Attendees.Length (fun i ->
+        let a = problem.Attendees[i]
+        PointD(a.X, a.Y)
+    )
+
+let tasteMatrix (problem: Problem) =
+    Array2D.init problem.Attendees.Length problem.Musicians.Length (fun i j ->
+        problem.Attendees[i].Tastes[j]
+    )
+
 // compute parameters of line a*x + b*y + c = 0 which pass through A and M points
 let line_parameter(A: PointD, M: PointD) =
   let a = A.Y - M.Y
