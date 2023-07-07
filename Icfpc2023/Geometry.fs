@@ -1,4 +1,4 @@
-﻿namespace Icfpc2023
+namespace Icfpc2023
 
 [<Struct>]
 type PointD =
@@ -9,9 +9,9 @@ type PointD =
         let (PointD(x1, y1)) = this
         let (PointD(x2, y2)) = p
         (x1 - x2) ** 2.0 + (y1 - y2) ** 2.0
-
     member this.DistanceTo(p: PointD): double =
         sqrt <| this.SquaredDistanceTo p
+    static member (+) (a: PointD, b: PointD) = PointD(a.X + b.X, a.Y + b.Y)
 
 [<Struct>]
 type Stadium =
