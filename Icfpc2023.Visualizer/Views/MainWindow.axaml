@@ -17,7 +17,11 @@
     </Design.DataContext>
 
     <Grid RowDefinitions="Auto,*">
-        <Button Content="Load Problem File…" />
+        <StackPanel Orientation="Horizontal">
+            <Label Content="{Binding CurrentProblemId}"/>
+            <Button Content="← Prev" Command="{Binding LoadPrev}" />
+            <Button Content="Next →" Command="{Binding LoadNext}" />
+        </StackPanel>
         <views:FieldView Grid.Row="1" DataContext="{Binding Field}" />
     </Grid>
 </Window>

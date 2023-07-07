@@ -3,6 +3,7 @@
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Media
+open Avalonia.Threading
 open Icfpc2023
 open Icfpc2023.Visualizer.ViewModels
 
@@ -21,6 +22,9 @@ type FieldView() =
         this.DrawRoom(context)
         this.DrawStage(context)
         this.ViewModel.Problem.Attendees |> Seq.iter(this.DrawAttendee context)
+
+    override this.OnDataContextChanged _ =
+        Dispatcher.UIThread.InvokeAsync(fun () -> this.InvalidateVisual()) |> ignore
 
     member private this.TransformDistance d =
         d * this.ViewModel.Scale
