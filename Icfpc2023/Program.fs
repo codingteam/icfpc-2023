@@ -29,6 +29,23 @@ let readToken() =
         failwith $"Please save the access token to file \"{tokenFile}\"."
     File.ReadAllText(tokenFile).Trim()
 
+let solvers = Map [
+    "dummy", DummySolver.Solve
+]
+
+let readProblem i =
+    let problemFile = Path.Combine(problemsDir, $"{i}.json")
+    JsonDefs.ReadProblemFromFile problemFile
+
+let readSolution i =
+    let solutionFile = Path.Combine(solutionsDir, $"{i}.json")
+    JsonDefs.ReadSolutionFromFile solutionFile
+
+let writeSolution i solution =
+    let solutionFile = Path.Combine(solutionsDir, $"{i}.json")
+    let solutionText = JsonDefs.WriteSolutionToJson solution
+    File.WriteAllText(solutionFile, solutionText)
+
 [<EntryPoint>]
 let main(args: string[]): int =
     Console.OutputEncoding <- Encoding.UTF8
@@ -52,21 +69,35 @@ let main(args: string[]): int =
         printfn $"Downloading problem {num} to \"{filePath}\"…"
         File.WriteAllText(filePath, content)
 
-    | [| "solve"; numStr; "dummy" |] ->
+    | [| "solve"; numStr; solverStr |] ->
         let num = int numStr
-        let problemFile = Path.Combine(problemsDir, $"{num}.json")
-        let problem = JsonDefs.ReadProblemFromFile problemFile
-        let solution = DummySolver.Solve problem
-        let solutionFile = Path.Combine(solutionsDir, $"{num}.json")
-        let solutionText = JsonDefs.WriteSolutionToJson solution
-        File.WriteAllText(solutionFile, solutionText)
+        let problem = readProblem num
+        let solver = solvers[solverStr]
+        let solution = solver problem
+        writeSolution num solution
+
+    | [| "solveBest"; numStr; solverStr |] ->
+        let num = int numStr
+        let problem = readProblem num
+
+        let oldSolution = readSolution num
+        let oldScore = Scoring.CalculateScore problem oldSolution
+
+        let solver = solvers[solverStr]
+        let newSolution = solver problem
+        let newScore = Scoring.CalculateScore problem newSolution
+
+        printfn $"Score for problem {num}: {oldScore} -> {newScore}"
+        if newScore > oldScore then
+            printfn $"Writing solution..."
+            writeSolution num newSolution
+        else
+            printfn "Do nothing!"
 
     | [| "score"; numStr |] ->
         let num = int numStr
-        let problemFile = Path.Combine(problemsDir, $"{num}.json")
-        let solutionFile = Path.Combine(solutionsDir, $"{num}.json")
-        let problem = JsonDefs.ReadProblemFromFile problemFile
-        let solution = JsonDefs.ReadSolutionFromFile solutionFile
+        let problem = readProblem num
+        let solution = readSolution num
         let score = Scoring.CalculateScore problem solution
         printfn $"Score: {string score}"
 
