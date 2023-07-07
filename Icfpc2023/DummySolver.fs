@@ -3,8 +3,8 @@ module Icfpc2023.DummySolver
 let Solve(problem: Problem): Solution =
     let vacantRadius = 10.0
     let grid = seq {
-        for x in 0.0 .. vacantRadius .. problem.StageWidth do
-            for y in 0.0 .. vacantRadius .. problem.StageHeight ->
+        for x in vacantRadius .. vacantRadius .. problem.StageWidth-vacantRadius do
+            for y in vacantRadius .. vacantRadius .. problem.StageHeight-vacantRadius ->
                 problem.StageBottomLeft + PointD(x, y)
     }
     {
