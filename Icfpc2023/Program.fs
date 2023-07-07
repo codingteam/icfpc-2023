@@ -46,6 +46,22 @@ let writeSolution i solution =
     let solutionText = JsonDefs.WriteSolutionToJson solution
     File.WriteAllText(solutionFile, solutionText)
 
+let writeSolutionScore i score =
+    let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
+    let solutionScoreText = JsonDefs.WriteSolutionScoreToJson score
+    File.WriteAllText(solutionScoreFile, solutionScoreText)
+
+let getExistingScore i problem =
+    let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
+    try
+        JsonDefs.ReadSolutionScoreFromFile solutionScoreFile
+    with
+    | :? System.IO.FileNotFoundException ->
+            let oldSolution = readSolution i
+            let score = Scoring.CalculateScore problem oldSolution
+            writeSolutionScore i score
+            score
+
 [<EntryPoint>]
 let main(args: string[]): int =
     Console.OutputEncoding <- Encoding.UTF8
@@ -81,13 +97,15 @@ let main(args: string[]): int =
         let problem = readProblem num
 
         let oldSolution = readSolution num
-        let oldScore = Scoring.CalculateScore problem oldSolution
+        let oldScore = getExistingScore num problem
 
         let solver = solvers[solverStr]
         let newSolution = solver problem
         let newScore = Scoring.CalculateScore problem newSolution
 
-        printfn $"Score for problem {num}: {oldScore} -> {newScore}"
+        let diff = newScore - oldScore
+        let diff_percent = 100.0 * (diff / oldScore)
+        printfn $"Score for problem {num}: {oldScore} -> {newScore} (%+f{diff} / %+.0f{diff_percent}%%)"
         if newScore > oldScore then
             printfn $"Writing solution..."
             writeSolution num newSolution

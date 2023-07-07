@@ -1,7 +1,9 @@
-﻿module Icfpc2023.JsonDefs
+module Icfpc2023.JsonDefs
 
 open System.IO
 open Newtonsoft.Json
+
+open Icfpc2023.Scoring
 
 [<Struct>]
 type AttendeeJson = {
@@ -28,6 +30,10 @@ type PlacementJson = {
 
 type SolutionJson = {
     placements: PlacementJson[]
+}
+
+type SolutionScoreJson = {
+    score: SolutionScore
 }
 
 #nowarn "25"
@@ -57,6 +63,15 @@ let ReadSolutionFromJson(json: string): Solution =
         Placements = solJson.placements |> Array.map(fun p -> PointD(p.x, p.y))
     }
 
+let WriteSolutionScoreToJson(score: SolutionScore): string =
+    let scoreJson = {
+        score = score
+    }
+    JsonConvert.SerializeObject(scoreJson)
+
+let ReadSolutionScoreFromJson(json: string): SolutionScore =
+    JsonConvert.DeserializeObject<SolutionScoreJson>(json).score
+
 let ReadProblemFromFile(filePath: string): Problem =
     let json = File.ReadAllText(filePath)
     ReadProblemFromJson json
@@ -64,3 +79,7 @@ let ReadProblemFromFile(filePath: string): Problem =
 let ReadSolutionFromFile(filePath: string): Solution =
     let json = File.ReadAllText(filePath)
     ReadSolutionFromJson json
+
+let ReadSolutionScoreFromFile(filePath: string): SolutionScore =
+    let json = File.ReadAllText(filePath)
+    ReadSolutionScoreFromJson json
