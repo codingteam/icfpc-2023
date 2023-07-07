@@ -80,6 +80,9 @@ let main(args: string[]): int =
             let submission = { ProblemId = problemNumber; Contents = File.ReadAllText(solution) }
             runSynchronouslyV <| Upload(submission, token)
 
+    | [| "lambdaScore" |] ->
+        LambdaScore.DoTest()
+
     | _ -> printfn "Command unrecognized."
 
     0

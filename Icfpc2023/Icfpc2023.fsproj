@@ -12,6 +12,7 @@
     <Compile Include="DummySolver.fs" />
     <Compile Include="JsonDefs.fs" />
     <Compile Include="HttpApi.fs" />
+    <Compile Include="LambdaScore.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

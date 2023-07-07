@@ -60,6 +60,12 @@ Calculate score for solution 1 on problem 1:
 $ dotnet run --project Icfpc2023 -- score 1
 ```
 
+#### Oddities
+Lambda score showcase (I dunno, see [PR #4](https://github.com/codingteam/icfpc-2023/pull/4/) for details):
+```console
+$ dotnet run --project Icfpc2023 -- lambdaScore
+```
+
 #### Legacy
 Download first 3 problems:
 

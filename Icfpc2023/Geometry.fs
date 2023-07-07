@@ -5,7 +5,13 @@ type PointD =
     | PointD of double * double
     member this.X = match this with PointD(x, _) -> x
     member this.Y = match this with PointD(_, y) -> y
+    member this.SquaredDistanceTo(p: PointD): double =
+        let (PointD(x1, y1)) = this
+        let (PointD(x2, y2)) = p
+        (x1 - x2) ** 2.0 + (y1 - y2) ** 2.0
 
+    member this.DistanceTo(p: PointD): double =
+        sqrt <| this.SquaredDistanceTo p
 
 [<Struct>]
 type Stadium =
