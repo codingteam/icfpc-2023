@@ -5,6 +5,10 @@ codingteam's submission for the ICFP Contest 2023.
 https://icfpcontest2023.github.io/
 - July 7th, 12:00 UTC (noon) to July 10th, 12:00 UTC
 
+Credentials and Tokens
+----------------------
+All the credentials and tokens to access the contest resources are stored in a pinned message in our Telegram chat and in the conference topic in the XMPP chat.
+
 Prerequisites
 -------------
 .NET SDK 7.0 is required. Get it for your platform at https://dotnet.microsoft.com/en-us/download (binary installers are available as well as packages for various Linux distributions).
