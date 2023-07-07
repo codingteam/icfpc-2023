@@ -36,6 +36,13 @@ $ dotnet run --project Icfpc2023 -- [arguments here…]
 $ cd Icfpc2023 && dotnet run -- [arguments here…]
 ```
 
+### Visualizer
+```console
+$ dotnet run --project Icfpc2023.Visualizer
+    # or, alternately:
+$ cd Icfpc2023.Visualizer && dotnet run
+```
+
 ### Commands
 
 #### HTTP
