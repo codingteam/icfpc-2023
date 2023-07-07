@@ -9,6 +9,8 @@ Credentials and Tokens
 ----------------------
 All the credentials and tokens to access the contest resources are stored in a pinned message in our Telegram chat and in the conference topic in the XMPP chat.
 
+⚠ Please save the access token to file `token.txt` in the solution directory.
+
 Prerequisites
 -------------
 .NET SDK 7.0 is required. Get it for your platform at https://dotnet.microsoft.com/en-us/download (binary installers are available as well as packages for various Linux distributions).
@@ -29,9 +31,9 @@ $ dotnet build
 Run
 ---
 ```console
-$ dotnet run --project Icfpc2023
+$ dotnet run --project Icfpc2023 -- [arguments here…]
     # or, alternately:
-$ cd Icfpc2023 && dotnet run
+$ cd Icfpc2023 && dotnet run -- [arguments here…]
 ```
 
 ### Commands
@@ -39,6 +41,11 @@ Download first 3 problems:
 
 ```console
 $ dotnet run --project Icfpc2023 -- download 3
+```
+
+Upload all solutions from the `solutions/` directory:
+```
+$ dotnet run --project Icfpc2023 -- upload all
 ```
 
 Run Tests
