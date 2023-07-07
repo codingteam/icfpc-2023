@@ -80,7 +80,7 @@ let main(args: string[]): int =
             runSynchronouslyV <| Upload(submission, token)
 
     | [| "lambdaScore" |] ->
-        LambdaScore.DoTest()
+        printfn "Nothing."
 
     | _ -> printfn "Command unrecognized."
 
