@@ -61,7 +61,7 @@ def lambda_score_AiMj(A, M, i, j, T, labda):
 # M - Musician, j-th
 # lambda - parameter; exact solution when -> infty
 def lambda_score_MiMj(M, i, j, labda):
-  pass
+  return (2. / math.pi * math.atan(labda * (distance_point(M[i], M[j]) - MUSICAL_MIN_DISTANCE)) + 1) * 100
 
 # to test
 class Point:
