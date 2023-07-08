@@ -164,7 +164,7 @@ let main(args: string[]): int =
         let solutions = Directory.GetFiles(solutionsDir, "*.json")
         for solution in solutions do
             let filename = Path.GetFileName solution
-            if not(filename.EndsWith(".score.json")) then
+            if not(filename.EndsWith(".meta.json")) then
                 printfn $"Uploading solution \"{filename}\"…"
                 let problemNumber = Path.GetFileNameWithoutExtension solution |> int
                 let submission = { ProblemId = problemNumber; Contents = File.ReadAllText(solution) }
