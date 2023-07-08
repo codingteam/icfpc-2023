@@ -161,7 +161,7 @@ contains
     real(8), allocatable :: Bma(:,:)
     allocate(Bma(this%N_musicians, this%N_attendees))
     do concurrent (i = 1:this%N_attendees, j = 1:this%N_musicians)
-      Bma(j, i) = sound_transparency(this%attendees(i), this%musicians(j), this%musicians) * sound_transparency(this%attendees(i), this%musicians(j), this%pillars)
+      Bma(j, i) = sound_transparency(this%attendees(i), this%musicians(j), j, this%musicians) * sound_transparency(this%attendees(i), this%musicians(j), this%pillars)
     end do
   end function room_build_block_matrix
 
@@ -169,13 +169,9 @@ contains
     class(room_t), intent(in) :: this
     integer :: i, j
     real(8), allocatable :: Tma(:,:), Dma(:,:), Bma(:,:)
-    allocate(Tma(this%N_musicians, this%N_attendees), &
-             Dma(this%N_musicians, this%N_attendees), &
-             Bma(this%N_musicians, this%N_attendees))
     Tma = this%build_taste_matrix()
     Dma = this%build_MA_distance_matrix()
     Bma = this%build_block_matrix()
-    print *, any(Bma /= 0._8)
     if (this%version == 1) then
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     else
@@ -184,9 +180,10 @@ contains
     end if
   end function room_score
 
-  pure real(8) function sound_transparency_musicians(attendee, musician, musicians) result (factor)
+  pure real(8) function sound_transparency_musicians(attendee, musician, j, musicians) result (factor)
     type(attendee_t), intent(in) :: attendee
     type(musician_t), intent(in) :: musician
+    integer, intent(in) :: j
     type(musician_t), intent(in), allocatable :: musicians(:)
     type(line_t) :: line
     integer :: i
@@ -196,9 +193,11 @@ contains
     endif
     call line%new(attendee%pos, musician%pos)
     do i = 1, size(musicians)
-      if (line%distanceTo(musicians(i)%pos) < BLOCK_DISTANCE) then
-        factor = 0._8
-        exit
+      if (i /= j) then
+        if (line%distanceTo(musicians(i)%pos) < BLOCK_DISTANCE) then
+          factor = 0._8
+          exit
+        end if
       end if
     end do
   end function sound_transparency_musicians
