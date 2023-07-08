@@ -5,7 +5,7 @@ program main
   type(room_t) :: room
   character(len=1024) :: filename
   real(8) :: e1, e2
-  filename = "23.ini"
+  call get_command_argument(1, filename)
   call room%load(filename)
   call room%print()
   e1 = room%score()
