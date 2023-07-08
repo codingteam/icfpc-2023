@@ -255,7 +255,7 @@ let lambda_score_MiMj_deriv_Mj(Mi: PointD, Mj: PointD, lambda: double) =
 //
 // #################################################
 
-let lambda_score_Mi_borders(Mi: PointD, problem: Problem, lambda: double) =
+let lambda_score_Mi_borders(Mi: PointD, problem: Problem) =
   if Mi.X < problem.StageBottomLeft.X + MUSICAL_MIN_DISTANCE then
     - 1e6 * 1e3
   else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE then
@@ -273,7 +273,7 @@ let lambda_score_Mi_borders(Mi: PointD, problem: Problem, lambda: double) =
 //
 // #################################################
 
-let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem, lambda: double) =
+let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem) =
   if Mi.X < problem.StageBottomLeft.X + MUSICAL_MIN_DISTANCE then
     PointD(- 1e3, 0)
   else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE then
@@ -284,3 +284,26 @@ let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem, lambda: double) =
     PointD(0, 1e3)
   else
     PointD(0, 0)
+
+// #################################################
+//
+// Total energy and derivatives
+//
+// #################################################
+
+let lambda_score(M: PointD[], problem: Problem, lambda: double) =
+  let mutable res = 0.0
+  let A = attendeesPositions problem
+  let T = tasteMatrix problem
+  for i in Enumerable.Range(0, A.Length) do
+    for j in Enumerable.Range(0, M.Length) do
+      res <- res + lambda_score_AiMj(A, M, i, j, T, lambda)
+  for i in Enumerable.Range(0, M.Length) do
+    for j in Enumerable.Range(0, M.Length) do
+      res <- res + lambda_score_MiMj(M[i], M[j], lambda)
+  for i in Enumerable.Range(0, M.Length) do
+    res <- res + lambda_score_Mi_borders(M[i], problem)
+  res
+
+let lambda_deriv(M: PointD[], problem: Problem, lambda: double) =
+  PointD(0.0, 0.0)
