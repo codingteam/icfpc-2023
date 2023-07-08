@@ -223,11 +223,31 @@ let lambda_score_MiMj(Mi: PointD, Mj: PointD, lambda: double) =
 //
 // #################################################
 
+// lambda score derivative between Mi and Mj over Mi
+//
+// Mi - Musician, i-th
+// Mj - Musician, j-th
+// lambda - parameter; exact solution when -> infty
+let lambda_score_MiMj_deriv_Mi(Mi: PointD, Mj: PointD, lambda: double) =
+  let distance = Mi.DistanceTo(Mj)
+  if distance > MUSICAL_MIN_DISTANCE then
+    PointD(0.0, 0.0)
+  else
+    (Mj - Mi) * 1e6 * 2. / Math.PI * 2. / (distance*distance) / (lambda*lambda * (distance - MUSICAL_MIN_DISTANCE)*(distance - MUSICAL_MIN_DISTANCE) + 1.0)
+
 // #################################################
 //
 // derivative of Mi-Mj interaction over Mj
 //
 // #################################################
+
+// lambda score derivative between Mi and Mj over Mj
+//
+// Mi - Musician, i-th
+// Mj - Musician, j-th
+// lambda - parameter; exact solution when -> infty
+let lambda_score_MiMj_deriv_Mj(Mi: PointD, Mj: PointD, lambda: double) =
+  - lambda_score_MiMj_deriv_Mi(Mj, Mi, lambda)
 
 // #################################################
 //
