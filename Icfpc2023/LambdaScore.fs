@@ -126,8 +126,8 @@ let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lamb
       let mutable tmpY = lambda_factor(lambda, A[i], M[j], M[jtt]) // deriv over Y
       for jt in Enumerable.Range(0, M.Length) do
         if jt <> j || jt <> jtt then
-          tmpX <- tmpX * lambda_factor(lambda, A[i], M[j], M[jtt])
-          tmpY <- tmpY * lambda_factor(lambda, A[i], M[j], M[jtt])
+          tmpX <- tmpX * lambda_factor(lambda, A[i], M[j], M[jt])
+          tmpY <- tmpY * lambda_factor(lambda, A[i], M[j], M[jt])
       res2 <- res2 + PointD(tmpX, tmpY)
   res2 <- res2 * (T[i,j] / A[i].SquaredDistanceTo(M[j]))
   res1 + res2
