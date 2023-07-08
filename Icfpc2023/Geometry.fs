@@ -16,6 +16,7 @@ type PointD =
     static member (*) (p: PointD, k: double) = PointD(p.X * k, p.Y * k)
     static member (/) (p: PointD, k: double) = PointD(p.X / k, p.Y / k)
     static member (*) (p1: PointD, p2: PointD) = PointD(p1.X * p2.X, p1.Y * p2.Y)
+    static member (~-) (a: PointD) = PointD(-a.X, -a.Y)
 
 [<Struct>]
 type Stadium =
