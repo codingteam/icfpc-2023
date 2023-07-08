@@ -62,6 +62,21 @@ Solve problem 1 using dummy solver:
 $ dotnet run --project Icfpc2023 -- solve 1 dummy
 ```
 
+Solve all problems using dummy solver:
+```console
+$ dotnet run --project Icfpc2023 -- solve all dummy
+```
+
+Solve problem 1 using all solvers and picking the best solution:
+```console
+$ dotnet run --project Icfpc2023 -- solve all best
+```
+
+Solve problem 1 using dummy solver and preserve best solution if already exists:
+```console
+$ dotnet run --project Icfpc2023 -- solve 1 dummy --preserve-best
+```
+
 Calculate score for solution 1 on problem 1:
 ```console
 $ dotnet run --project Icfpc2023 -- score 1
