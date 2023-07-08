@@ -19,16 +19,23 @@ module domain
   end type
 
   type, public :: room_t
-    real(8) :: room_height, room_width
-    real(8) :: stage_height, stage_width
+    real(8) :: room_height = 0, room_width = 0
+    real(8) :: stage_height = 0, stage_width = 0
     type(Vec2D_t) :: stage_bottom_left
+    integer :: version = 0
+    integer :: N_musicians = 0
+    integer :: N_attendees = 0
+    integer :: N_pillars = 0
     type(musician_t), allocatable :: musicians(:)
     type(attendee_t), allocatable :: attendees(:)
     type(pillar_t), allocatable :: pillars(:)
-    integer :: version
   contains
     procedure, pass(this) :: load => room_load
     procedure, pass(this) :: print => room_print
+    procedure, pass(this) :: score => room_score
+    procedure, pass(this) :: build_taste_matrix => room_build_taste_matrix
+    procedure, pass(this) :: build_MA_distance_matrix => room_build_MA_distance_matrix
+    procedure, pass(this) :: build_MM_distance_matrix => room_build_MM_distance_matrix
   end type
 
 contains
@@ -37,7 +44,6 @@ contains
     character(len=*), intent(in) :: filename
     character(len=100) :: line
     integer :: LU
-    integer :: N_musicians, N_attendees, N_pillars
     integer :: input_version
     integer :: i, status, max_instrument = 0
     ! Open the file
@@ -67,27 +73,27 @@ contains
       else if (index(line, "[stage_bottom_left]") /= 0) then
         read(LU, *) this%stage_bottom_left
       else if (index(line, "[musicians]") /= 0) then
-        read(LU, *) N_musicians
-        allocate(this%musicians(N_musicians))
-        do i = 1, N_musicians
+        read(LU, *) this%N_musicians
+        allocate(this%musicians(this%N_musicians))
+        do i = 1, this%N_musicians
           read(LU, *) this%musicians(i)%pos%x, this%musicians(i)%pos%y, this%musicians(i)%instrument
         end do
-        do i = 1, N_musicians
+        do i = 1, this%N_musicians
           if (this%musicians(i)%instrument > max_instrument) then
             max_instrument = this%musicians(i)%instrument
           end if
         end do
       else if (index(line, "[attendees]") /= 0) then
-        read(LU, *) N_attendees
-        allocate(this%attendees(N_attendees))
-        do i = 1, N_attendees
+        read(LU, *) this%N_attendees
+        allocate(this%attendees(this%N_attendees))
+        do i = 1, this%N_attendees
           allocate(this%attendees(i)%tastes(0:max_instrument))
           read(LU, *) this%attendees(i)%pos%x, this%attendees(i)%pos%y, this%attendees(i)%tastes(:)
         end do
       else if (index(line, "[pillars]") /= 0) then
-        read(LU, *) N_pillars
-        allocate(this%pillars(N_pillars))
-        do i = 1, N_pillars
+        read(LU, *) this%N_pillars
+        allocate(this%pillars(this%N_pillars))
+        do i = 1, this%N_pillars
           read(LU, *) this%pillars(i)%pos%x, this%pillars(i)%pos%y, this%pillars(i)%radius
         end do
       end if
@@ -103,6 +109,49 @@ contains
     print *, "Room:              ", this%room_height, this%room_width
     print *, "Stage pos:         ", this%stage_bottom_left
     print *, "Stage:             ", this%stage_height, this%stage_width
-    print *, "Parameters(M/N/P): ", size(this%musicians), size(this%attendees), size(this%pillars)
+    print *, "Parameters(M/N/P): ", this%N_musicians, this%N_attendees, this%N_pillars
   end subroutine room_print
+
+  function room_build_taste_matrix(this) result(Tma)
+    class(room_t), intent(in) :: this
+    real(8), allocatable :: Tma(:,:) ! Taste matrix
+    integer :: i, j
+    allocate(Tma(this%N_musicians, this%N_attendees))
+    do concurrent ( i = 1:this%N_attendees, j = 1:this%N_musicians)
+      Tma(j, i) = this%attendees(i)%tastes(this%musicians(j)%instrument)
+    end do
+  end function room_build_taste_matrix
+
+  function room_build_MA_distance_matrix(this) result(Dma)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Dma(:,:)
+    allocate(Dma(this%N_musicians, this%N_attendees))
+    do concurrent ( i = 1:this%N_attendees, j = 1:this%N_musicians)
+      Dma(j, i) = 1._8 / ((this%attendees(i)%pos%x - this%musicians(j)%pos%x) ** 2 + (this%attendees(i)%pos%y - this%musicians(j)%pos%y) ** 2)
+    end do
+  end function room_build_MA_distance_matrix
+
+  function room_build_MM_distance_matrix(this) result(Dmm)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Dmm(:,:)
+    allocate(Dmm(this%N_musicians, this%N_musicians), source = 0._8)
+    do concurrent ( i = 1:this%N_attendees, j = 1:this%N_musicians, i /= j)
+      if (this%musicians(i)%instrument == this%musicians(j)%instrument) then
+        Dmm(j, i) = 1._8 / sqrt((this%musicians(i)%pos%x - this%musicians(j)%pos%x) ** 2 + (this%musicians(i)%pos%y - this%musicians(j)%pos%y) ** 2)
+      end if
+    end do
+  end function room_build_MM_distance_matrix
+
+  real(8) function room_score(this) result(energy)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Tma(:,:)
+    Tma = this%build_taste_matrix()
+    energy = 0.0
+    do i = 1, this%N_attendees
+      energy = energy
+    end do
+  end function room_score
 end module domain
