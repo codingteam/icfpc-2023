@@ -306,4 +306,18 @@ let lambda_score(M: PointD[], problem: Problem, lambda: double) =
   res
 
 let lambda_deriv(M: PointD[], problem: Problem, lambda: double) =
-  PointD(0.0, 0.0)
+  let mutable musicianDeriv = Array.create M.Length (PointD(0.0, 0.0))
+  let A = attendeesPositions problem
+  let T = tasteMatrix problem
+  for i in Enumerable.Range(0, A.Length) do
+    for j in Enumerable.Range(0, M.Length) do
+      musicianDeriv[j] <- musicianDeriv[j] + lambda_derivative_AiMj_Mj(A, M, i, j, T, lambda)
+      let ders = lambda_derivative_AiMj_Mjt(A, M, i, j, T, lambda)
+      for k in Enumerable.Range(0, M.Length) do
+        musicianDeriv[k] <- musicianDeriv[k] + ders[k]
+  for i in Enumerable.Range(0, M.Length) do
+    for j in Enumerable.Range(0, M.Length) do
+      musicianDeriv[j] <- musicianDeriv[j] + lambda_score_MiMj_deriv_Mj(M[i], M[j], lambda) * 0.5
+  for i in Enumerable.Range(0, M.Length) do
+    musicianDeriv[i] <- musicianDeriv[i] + lambda_score_Mi_border_deriv(M[i], problem)
+  musicianDeriv
