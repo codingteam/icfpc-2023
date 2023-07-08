@@ -64,12 +64,12 @@ let writeSolution (problemId: int) solution solutionMetadata =
 
 let solve (problemId: int) (solverName: SolverName) =
     let solveWithSolver (problemId: int) (solverName: SolverName) =
-        printf $"Trying solver {solverName}... "
+        printf $"Trying to solve problem {problemId} with solver {solverName}... "
         let problem = readProblem problemId
         let solver = solvers[solverName]
         let solution = solver problem
         let score = Scoring.CalculateScore problem solution
-        printfn $"Score: {score}"
+        printfn $"On problem {problemId}, solver {solverName} yielded a score of {score}"
         let solutionMetadata = {
             Score = score
             SolverName = solverName
