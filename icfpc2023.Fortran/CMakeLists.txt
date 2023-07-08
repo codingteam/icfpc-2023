@@ -18,3 +18,18 @@ add_executable(${PN} ${SOURCES})
 if(IPO_AVAILABLE)
   set_target_properties(${PN} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
+if("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
+  target_compile_options(${PN} PRIVATE
+    $<$<COMPILE_LANGUAGE:Fortran>:-std=f2018 -ffree-line-length-none>
+)
+elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
+  target_compile_options(${PN} PRIVATE
+    $<$<COMPILE_LANGUAGE:Fortran>:-stand f18>
+)
+elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM")
+  target_compile_options(${PN} PRIVATE
+    $<$<COMPILE_LANGUAGE:Fortran>:-stand f18>
+)
+else()
+  message(FATAL_ERROR "Unknown Fortran compiler ID: ${CMAKE_Fortran_COMPILER_ID}")
+endif()
