@@ -52,4 +52,4 @@ let CalculateNoBlockingScore(problem: Problem) (solution: Solution): Score =
         |> Seq.zip solution.Placements
         |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
         |> Seq.toArray
-    problem.Attendees |> Array.sumBy(failwith "CalculateAttendeeNoBlokingScore" musicians)
+    problem.Attendees |> Array.sumBy(CalculateAttendeeNoBlockingScore musicians)
