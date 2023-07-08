@@ -161,6 +161,13 @@ let main(args: string[]): int =
         | Some(_, solutionMetadata) -> printfn $"Score: {string solutionMetadata.Score}"
         | _ -> printfn $"Problem {problemId} is not solved yet!"
 
+    | [| "upload"; Parse(problemId) |] ->
+        let token = readToken()
+        let filename = Path.Combine(solutionsDir, $"{problemId}.json")
+        printfn $"Uploading solution \"{filename}\"…"
+        let submission = { ProblemId = problemId; Contents = File.ReadAllText(filename) }
+        runSynchronouslyV <| Upload(submission, token)
+
     | [| "upload"; "all" |] ->
         let token = readToken()
         let solutions = Directory.GetFiles(solutionsDir, "*.json")
