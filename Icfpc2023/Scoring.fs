@@ -24,9 +24,15 @@ let private AnyOtherMusicianBlocksSound (musicians: Musician[]) (attendee: Atten
 let private AnyPillarBlocksSound (pillars: Pillar[]) (musician: Musician) (attendee: Attendee): bool =
     let musician = PointD(musician.Location.X, musician.Location.Y)
     let attendee = PointD(attendee.X, attendee.Y)
-    let line = { End1 = musician; End2 = attendee }
     Array.toSeq pillars
-    |> Seq.exists(fun (p) -> line.DistanceTo(p.Center) < p.Radius)
+    |> Seq.exists(fun (p) ->
+            let blockZone = {
+                Center1 = musician
+                Center2 = attendee
+                // Subtracting epsilon turns inclusive boundary into exclusive
+                Radius = p.Radius - System.Double.Epsilon
+            }
+            blockZone.Contains(p.Center))
 
 let private CalculateAttendeeScore (pillars: Pillar[]) (musicians: Musician[]) (closenessFactors: ClosenessFactor[]) (attendee: Attendee): Score =
     Seq.indexed musicians
