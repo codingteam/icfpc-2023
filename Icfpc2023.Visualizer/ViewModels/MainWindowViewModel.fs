@@ -1,5 +1,6 @@
 ﻿namespace Icfpc2023.Visualizer.ViewModels
 
+open Icfpc2023
 open ReactiveUI
 
 type MainWindowViewModel() =
@@ -7,9 +8,8 @@ type MainWindowViewModel() =
 
     static member LoadProblem(problemId: int): FieldViewModel =
         let problem = Program.readProblem problemId
-        let solution = Program.readSolution problemId
-        let score = Program.readScoreOrCompute problemId problem
-        FieldViewModel(problemId, problem, solution, score)
+        let solution, solutionMetadata = Program.readSolution problemId
+        FieldViewModel(problemId, problem, solution, solutionMetadata)
 
     member val Field =
         MainWindowViewModel.LoadProblem(1)
@@ -19,11 +19,15 @@ type MainWindowViewModel() =
 
     member this.MusiciansCount = string this.Field.Problem.Musicians.Length
 
-    member this.Score = string this.Field.Score
+    member this.Score = string this.Field.SolutionMetadata.Score
+    member this.Solver = string this.Field.SolutionMetadata.Solver
 
     member private this.LoadProblemById(problemId: int) =
         this.Field <- MainWindowViewModel.LoadProblem(problemId)
         this.RaisePropertyChanged(nameof this.ProblemId)
+        this.RaisePropertyChanged(nameof this.MusiciansCount)
+        this.RaisePropertyChanged(nameof this.Score)
+        this.RaisePropertyChanged(nameof this.Solver)
         this.RaisePropertyChanged(nameof this.Field)
 
     member this.LoadPrev(): unit =
