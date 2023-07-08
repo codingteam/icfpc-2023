@@ -11,16 +11,21 @@ type Pillar = {
     Radius: double
 }
 
-type Problem = {
-    RoomWidth: double
-    RoomHeight: double
-    StageWidth: double
-    StageHeight: double
-    StageBottomLeft: PointD
-    Musicians: int[]
-    Attendees: Attendee[]
-    Pillars: Pillar[]
-}
+type Problem =
+    {
+        RoomWidth: double
+        RoomHeight: double
+        StageWidth: double
+        StageHeight: double
+        StageBottomLeft: PointD
+        Musicians: int[]
+        Attendees: Attendee[]
+        Pillars: Pillar[]
+    }
+    /// Extension 2: Playing Together
+    member this.IsTogetherExtensionActive =
+        // Confirmed by the organizers: https://discord.com/channels/1118159165060292668/1126853058186444942/1127283248943353928
+        this.Pillars.Length > 0
 
 type IPartialSolution =
     abstract member GetPlacedMusicians: allMusicians: int[] -> seq<PointD * int>

@@ -4,8 +4,9 @@ open System.Text
 
 let ToIni (problem: Problem) (solution: Solution option): string =
     let result = StringBuilder()
+    let version = if problem.IsTogetherExtensionActive then "2" else "1"
     result.AppendLine $"""[version]
-1
+{version}
 [room_height]
 {string problem.RoomHeight}
 [room_width]
