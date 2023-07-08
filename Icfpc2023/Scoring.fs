@@ -32,7 +32,7 @@ let private CalculateAttendeeNoBlockingScore (musicians: Musician[]) (attendee: 
         CalculateAttendeeMusicianScore attendee musician
     )
 
-let CalculateMusicianNoBlockingScore (attendees: Attendee[]) (musician: Musician): Score =
+let private CalculateMusicianNoBlockingScore (attendees: Attendee[]) (musician: Musician): Score =
     Seq.indexed attendees
     |> Seq.sumBy(fun (i, attendee) ->
         CalculateAttendeeMusicianScore attendee musician
@@ -52,4 +52,4 @@ let CalculateNoBlockingScore(problem: Problem) (solution: Solution): Score =
         |> Seq.zip solution.Placements
         |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
         |> Seq.toArray
-    problem.Attendees |> Array.sumBy(CalculateAttendeeNoBlokingScore musicians)
+    problem.Attendees |> Array.sumBy(failwith "CalculateAttendeeNoBlokingScore" musicians)
