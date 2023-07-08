@@ -211,7 +211,11 @@ let lambda_derivative_AiMj_Mjt(A: PointD[], M: PointD[], i, j, T: double[,], lam
 // Mj - Musician, j-th
 // lambda - parameter; exact solution when -> infty
 let lambda_score_MiMj(Mi: PointD, Mj: PointD, lambda: double) =
-  (2. / Math.PI * atan(lambda * (Mi.DistanceTo(Mj) - MUSICAL_MIN_DISTANCE)) + 1.0) * 100.0
+  let distance = Mi.DistanceTo(Mj)
+  if distance > MUSICAL_MIN_DISTANCE then
+    0.0
+  else
+    - (2. / Math.PI * atan(lambda * (distance - MUSICAL_MIN_DISTANCE)) + 1.0) * 1e6 * 1e3
 
 // #################################################
 //
