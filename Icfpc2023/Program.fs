@@ -41,6 +41,7 @@ let solvers = Map [
     "randomDummyV1", DummySolver.RandomDummyV1
     "randomDummyV2", DummySolver.RandomDummyV2
     "lambda", LambdaSolver.Solve
+    "foxtranV1", FoxtranSolver.FoxtranSolveV1
 ]
 
 let readProblem (problemId: int) =

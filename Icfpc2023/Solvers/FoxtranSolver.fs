@@ -25,7 +25,7 @@ let private GetMusicianIndicesPerInstrument problem: Dictionary<int, list<int>> 
 
     result
 
-let FindMaxValue grid =
+let private FindMaxValue grid =
     let mutable max = Double.MinValue
     let mutable maxPos = struct(-1, -1)
     for x in 0 .. Array2D.length1 grid - 1 do
