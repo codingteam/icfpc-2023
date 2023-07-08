@@ -21,9 +21,9 @@ type Solution = {
 }
 
 type Score = double
-type Solver = string
+type SolverName = string
 
 type SolutionMetadata = {
     Score: Score
-    Solver: Solver
+    SolverName: SolverName
 }

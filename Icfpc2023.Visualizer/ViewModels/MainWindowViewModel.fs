@@ -20,7 +20,7 @@ type MainWindowViewModel() =
     member this.MusiciansCount = string this.Field.Problem.Musicians.Length
 
     member this.Score = string this.Field.SolutionMetadata.Score
-    member this.Solver = string this.Field.SolutionMetadata.Solver
+    member this.Solver = string this.Field.SolutionMetadata.SolverName
 
     member private this.LoadProblemById(problemId: int) =
         this.Field <- MainWindowViewModel.LoadProblem(problemId)
