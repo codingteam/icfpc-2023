@@ -2,6 +2,8 @@ module Icfpc2023.FoxtranSolver
 
 open System
 open System.Collections.Generic
+open System.Linq
+open System.Threading
 
 let private MusicianDeadZoneRadius = 10.0
 let private GridCellSize = MusicianDeadZoneRadius
@@ -80,15 +82,25 @@ let FoxtranSolveV1(problem: Problem): Solution =
         1 + (int <| floor ((problem.StageHeight - 20.0) / GridCellSize))
     let createGrid() = Array2D.zeroCreate gridWidth gridHeight
 
-    let gridsPerInstrument = Array.init instrumentCount (fun _ -> createGrid())
+    let mutable finishedInstruments = 0
+    let gridsPerInstrument =
+        ParallelEnumerable.Range(0, instrumentCount)
+            .Select(fun instrument ->
+                let grid = createGrid()
+                for cellX in 0 .. gridWidth - 1 do
+                    for cellY in 0 .. gridHeight - 1  do
+                        let cellPosition = GridCoordToPhysicalCoord problem (cellX, cellY)
+                        let solution = MakeSolutionWithSingleMusician instrument cellPosition
+                        let score = Scoring.CalculateNoBlockingScore problem solution
+                        grid[cellX, cellY] <- score
+                let finished = Interlocked.Increment(&finishedInstruments)
+                if finished % 25 = 0 then
+                    printfn $"  Prepared {finished}/{instrumentCount} instruments…"
+                grid
+            )
+            .ToArray()
 
-    for cellX in 0 .. gridWidth - 1 do
-      for cellY in 0 .. gridHeight - 1  do
-        for instrument in 0 .. instrumentCount-1 do
-          let cellPosition = GridCoordToPhysicalCoord problem (cellX, cellY)
-          let solution = MakeSolutionWithSingleMusician instrument cellPosition
-          let score = Scoring.CalculateNoBlockingScore problem solution
-          gridsPerInstrument[instrument][cellX, cellY] <- score
+    printfn $"Prepared {finishedInstruments}/{instrumentCount} instruments."
 
     let musicianIndicesPerInstrument = GetMusicianIndicesPerInstrument problem
     let placements = Array.zeroCreate problem.Musicians.Length
