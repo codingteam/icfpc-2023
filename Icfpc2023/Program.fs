@@ -46,6 +46,7 @@ let solvers = Map(Seq.concat [
             "dummyV2", DummySolver.SolveV2
             // "lambda", LambdaSolver.Solve
             "foxtranV1", FoxtranSolver.FoxtranSolveV1
+            "foxtranV2", FoxtranSolver.FoxtranSolveV2
         };
         Map.toSeq nondeterministic_solvers
     ])
