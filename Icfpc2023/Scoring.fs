@@ -32,6 +32,12 @@ let private CalculateAttendeeNoBlockingScore (musicians: Musician[]) (attendee: 
         CalculateAttendeeMusicianScore attendee musician
     )
 
+let CalculateMusicianNoBlockingScore (attendees: Attendee[]) (musician: Musician): Score =
+    Seq.indexed attendees
+    |> Seq.sumBy(fun (i, attendee) ->
+        CalculateAttendeeMusicianScore attendee musician
+    )
+
 let CalculateScore(problem: Problem) (solution: Solution): Score =
     let musicians =
         problem.Musicians
