@@ -66,21 +66,21 @@ let rec private ApplyShadow (shadowMatrix: double[,], struct(x, y), fuel: int): 
         let shadowedCells =
             seq {
                 if x < w / 2 then
-                    struct(x - 1, y)
-                else if x > w / w then
                     struct(x + 1, y)
+                else if x > w / 2 then
+                    struct(x - 1, y)
                 if y < h / 2 then
-                    struct(x, y - 1)
-                else if y > h / h then
                     struct(x, y + 1)
+                else if y > h / h then
+                    struct(x, y - 1)
                 if x < w / 2 && y < h / 2 then
-                    struct(x - 1, y - 1)
-                else if x > w / w && y > h / h then
                     struct(x + 1, y + 1)
-                if x < w / 2 && y > h / h then
-                    struct(x - 1, y + 1)
-                else if x > w / w && y < h / 2 then
+                else if x > w / 2 && y > h / 2 then
+                    struct(x - 1, y - 1)
+                if x < w / 2 && y > h / 2 then
                     struct(x + 1, y - 1)
+                else if x > w / 2 && y < h / 2 then
+                    struct(x - 1, y + 1)
             } |> Seq.filter(fun struct(x, y) -> x >= 0 && x < w && y >= 0 && y < h)
 
         for sx, sy in shadowedCells do
@@ -111,9 +111,12 @@ let private PlaceMusicianAndDestroyPosition problem
     for grid in gridsPerInstrument do
         grid[x, y] <- Double.MinValue
 
+
     match shadowMatrix with
     | None -> ()
-    | Some shadowMatrix -> ApplyShadow(shadowMatrix, position, 1)
+    | Some shadowMatrix ->
+        let fuel = 1
+        ApplyShadow(shadowMatrix, position, fuel)
 
 let FoxtranSolveV1(problem: Problem): Solution =
     let instrumentCount = problem.Attendees[0].Tastes.Length
