@@ -14,6 +14,7 @@
     <Compile Include="Solvers\FoxtranSolver.fs" />
     <Compile Include="JsonDefs.fs" />
     <Compile Include="HttpApi.fs" />
+    <Compile Include="Converter.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

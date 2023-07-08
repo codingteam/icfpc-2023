@@ -97,6 +97,11 @@ Lambda score showcase (I dunno, see [PR #4](https://github.com/codingteam/icfpc-
 $ dotnet run --project Icfpc2023 -- lambdaScore
 ```
 
+Convert Problem+Solutions to INI:
+```console
+$ dotnet run --project Icfpc2023 -- convertini <all|problemId>
+```
+
 #### Legacy
 Download first 3 problems:
 

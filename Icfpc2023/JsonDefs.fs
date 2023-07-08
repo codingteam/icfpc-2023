@@ -3,8 +3,6 @@ module Icfpc2023.JsonDefs
 open System.IO
 open Newtonsoft.Json
 
-open Icfpc2023.Scoring
-
 [<Struct>]
 type AttendeeJson = {
     x: double

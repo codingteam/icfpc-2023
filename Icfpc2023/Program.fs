@@ -134,6 +134,19 @@ let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
         let problemId = Path.GetFileNameWithoutExtension problem |> int
         solveCommand problemId solverName preserveBest
 
+let convertIni problemFile =
+    let problem = JsonDefs.ReadProblemFromFile problemFile
+    let problemId = int <| Path.GetFileNameWithoutExtension problemFile
+    let solution =
+        tryReadSolution problemId
+        |> Option.map fst
+
+    let ini = Converter.ToIni problem solution
+    let examplesDir = Path.Combine(solutionDirectory, "examples")
+    Directory.CreateDirectory examplesDir |> ignore
+    let iniFile = Path.Combine(examplesDir, $"{problemId}.ini")
+    File.WriteAllText(iniFile, ini)
+
 [<EntryPoint>]
 let main(args: string[]): int =
     Console.OutputEncoding <- Encoding.UTF8
@@ -202,6 +215,14 @@ let main(args: string[]): int =
                 let problemNumber = Path.GetFileNameWithoutExtension solution |> int
                 let submission = { ProblemId = problemNumber; Contents = File.ReadAllText(solution) }
                 runSynchronouslyV <| Upload(submission, token)
+
+    | [| "convertini"; "all" |] ->
+        for problemFile in Directory.GetFiles problemsDir do
+            convertIni problemFile
+
+    | [| "convertini"; problemId |] ->
+        let problemFile = Path.Combine(problemsDir, $"{problemId}.json")
+        convertIni problemFile
 
     | [| "lambdaScore" |] ->
         printfn "Nothing."
