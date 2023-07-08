@@ -9,4 +9,5 @@ program main
   call room%print()
   print *, room%score()
   call guess_v1(room)
+  print *, room%score()
 end program main
