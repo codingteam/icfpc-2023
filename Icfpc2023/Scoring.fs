@@ -26,6 +26,12 @@ let private CalculateAttendeeScore (musicians: Musician[]) (attendee: Attendee):
         else CalculateAttendeeMusicianScore attendee musician
     )
 
+let private CalculateAttendeeNoBlockingScore (musicians: Musician[]) (attendee: Attendee): Score =
+    Seq.indexed musicians
+    |> Seq.sumBy(fun (i, musician) ->
+        CalculateAttendeeMusicianScore attendee musician
+    )
+
 let CalculateScore(problem: Problem) (solution: Solution): Score =
     let musicians =
         problem.Musicians
@@ -33,3 +39,11 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
         |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
         |> Seq.toArray
     problem.Attendees |> Array.sumBy(CalculateAttendeeScore musicians)
+
+let CalculateNoBlockingScore(problem: Problem) (solution: Solution): Score =
+    let musicians =
+        problem.Musicians
+        |> Seq.zip solution.Placements
+        |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
+        |> Seq.toArray
+    problem.Attendees |> Array.sumBy(CalculateAttendeeNoBlokingScore musicians)
