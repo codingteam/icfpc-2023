@@ -195,6 +195,7 @@ contains
     do i = 1, size(this%musicians)
       if (this%musicians(i)%pos%x < -1000) exit
       do j = 1, size(this%musicians)
+        if (i == j) cycle
         if (this%musicians(j)%pos%x < -1000) exit
         if (this%musicians(j)%pos%distanceTo(this%musicians(i)%pos) < MINIMAL_MUSICIAN_DISTANCE) then
           energy = - 1e8_8

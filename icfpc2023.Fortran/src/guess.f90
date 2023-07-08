@@ -9,7 +9,7 @@ contains
     integer(8), allocatable :: order(:)
     type(musician_t) :: musician
     integer(8) :: max_pos(3)
-    allocate(Pot(room%N_musicians, int(room%stage_width, 8) - 20 + 1, int(room%stage_height, 8) - 20 + 1))
+    allocate(Pot(room%N_instruments, int(room%stage_width, 8) - 20 + 1, int(room%stage_height, 8) - 20 + 1))
     allocate(order(room%N_musicians))
     do i = 1, room%N_musicians
       room%musicians(i)%pos%x = -2000
@@ -29,7 +29,12 @@ contains
         end do
       end do
       max_pos = maxloc(Pot)
-      print *, max_pos
+      room%musicians(t)%instrument = max_pos(1)
+      room%musicians(t)%pos%x = max_pos(2) + 9
+      room%musicians(t)%pos%y = max_pos(3) + 9
+    end do
+    do t = 1, room%N_musicians
+      print *, room%musicians(t)%pos%x, room%musicians(t)%pos%y
     end do
   end subroutine guess_v1
 end module guess_mod
