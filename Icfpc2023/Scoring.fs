@@ -19,10 +19,18 @@ let private AnyOtherMusicianBlocksSound (musicians: Musician[]) (attendee: Atten
     |> Seq.filter(fun (i, _) -> i <> mIndex)
     |> Seq.exists(fun (_, m) -> blockZone.Contains(m.Location))
 
-let private CalculateAttendeeScore (musicians: Musician[]) (attendee: Attendee): Score =
+let private AnyPillarBlocksSound (pillars: Pillar[]) (musician: Musician) (attendee: Attendee): bool =
+    let musician = PointD(musician.Location.X, musician.Location.Y)
+    let attendee = PointD(attendee.X, attendee.Y)
+    let line = { End1 = musician; End2 = attendee }
+    Array.toSeq pillars
+    |> Seq.exists(fun (p) -> line.DistanceTo(p.Center) < p.Radius)
+
+let private CalculateAttendeeScore (pillars: Pillar[]) (musicians: Musician[]) (attendee: Attendee): Score =
     Seq.indexed musicians
     |> Seq.sumBy(fun (i, musician) ->
         if AnyOtherMusicianBlocksSound musicians attendee i then 0.0
+        else if AnyPillarBlocksSound pillars musicians.[i] attendee then 0.0
         else CalculateAttendeeMusicianScore(attendee, musician)
     )
 
@@ -44,7 +52,7 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
         |> Seq.zip solution.Placements
         |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
         |> Seq.toArray
-    problem.Attendees |> Array.sumBy(CalculateAttendeeScore musicians)
+    problem.Attendees |> Array.sumBy(CalculateAttendeeScore problem.Pillars musicians)
 
 let CalculateNoBlockingScore(problem: Problem) (solution: IPartialSolution): Score =
     let musicians =

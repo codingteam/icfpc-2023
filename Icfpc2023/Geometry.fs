@@ -19,6 +19,19 @@ type PointD =
     static member (~-) (a: PointD) = PointD(-a.X, -a.Y)
 
 [<Struct>]
+type Line =
+    {
+        End1: PointD
+        End2: PointD
+    }
+    member this.DistanceTo(p: PointD): double =
+        let (PointD(x0, y0)) = p
+        let (PointD(x1, y1)) = this.End1
+        let (PointD(x2, y2)) = this.End2
+
+        abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt((x2 - x1) ** 2.0 + (y2 - y1) ** 2)
+
+[<Struct>]
 type Stadium =
     {
         Center1: PointD
@@ -45,8 +58,8 @@ type Stadium =
         let (PointD(x1, y1)) = this.Center1
         let (PointD(x2, y2)) = this.Center2
 
-        let distance_to_line = abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt((x2 - x1) ** 2.0 + (y2 - y1) ** 2)
-        if distance_to_line > this.Radius then false
+        let line = { End1 = this.Center1; End2 = this.Center2 }
+        if line.DistanceTo(p) > this.Radius then false
         else
 
         // Calculate slope and intercept of line between the two centres:

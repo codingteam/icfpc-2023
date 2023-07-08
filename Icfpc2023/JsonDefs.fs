@@ -12,6 +12,12 @@ type AttendeeJson = {
     tastes: double[]
 }
 
+[<Struct>]
+type PillarJson = {
+    center: double[]
+    radius: double
+}
+
 type ProblemJson = {
     room_width: double
     room_height: double
@@ -20,6 +26,7 @@ type ProblemJson = {
     stage_bottom_left: double[]
     musicians: int[]
     attendees: AttendeeJson[]
+    pillars: PillarJson[]
 }
 
 [<Struct>]
@@ -50,6 +57,7 @@ let ReadProblemFromJson(json: string): Problem =
         StageBottomLeft = PointD(stageBottomX, stageBottomY)
         Musicians = problem.musicians
         Attendees = problem.attendees |> Array.map(fun a -> { X = a.x; Y = a.y; Tastes = a.tastes })
+        Pillars = problem.pillars |> Array.map(fun a -> { Center = PointD(a.center.[0], a.center.[1]); Radius = a.radius })
     }
 
 let WriteSolutionToJson(solution: Solution): string =

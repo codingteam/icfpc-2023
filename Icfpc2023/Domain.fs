@@ -1,9 +1,14 @@
-﻿namespace Icfpc2023
+namespace Icfpc2023
 
 type Attendee = {
     X: double
     Y: double
     Tastes: double[]
+}
+
+type Pillar = {
+    Center: PointD
+    Radius: double
 }
 
 type Problem = {
@@ -14,6 +19,7 @@ type Problem = {
     StageBottomLeft: PointD
     Musicians: int[]
     Attendees: Attendee[]
+    Pillars: Pillar[]
 }
 
 type IPartialSolution =
