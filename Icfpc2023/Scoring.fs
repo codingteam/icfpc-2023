@@ -11,7 +11,7 @@ let private CalculateAttendeeMusicianScore (attendee: Attendee) (musician: Music
     ceil(1_000_000.0 * attendee.Tastes[musician.Instrument] / d_squared)
 
 let private AnyOtherMusicianBlocksSound (musicians: Musician[]) (attendee: Attendee) (mIndex: int): bool =
-    let musician = PointD(musicians.[mIndex].Location.X, musicians.[mIndex].Location.Y)
+    let musician = PointD(musicians[mIndex].Location.X, musicians[mIndex].Location.Y)
     let attendee = PointD(attendee.X, attendee.Y)
     let blockZone = { Center1 = musician; Center2 = attendee; Radius = 5.0 }
 
@@ -27,14 +27,14 @@ let private CalculateAttendeeScore (musicians: Musician[]) (attendee: Attendee):
     )
 
 let private CalculateAttendeeNoBlockingScore (musicians: Musician[]) (attendee: Attendee): Score =
-    Seq.indexed musicians
-    |> Seq.sumBy(fun (i, musician) ->
+    musicians
+    |> Array.sumBy(fun musician ->
         CalculateAttendeeMusicianScore attendee musician
     )
 
 let private CalculateMusicianNoBlockingScore (attendees: Attendee[]) (musician: Musician): Score =
-    Seq.indexed attendees
-    |> Seq.sumBy(fun (i, attendee) ->
+    attendees
+    |> Array.sumBy(fun attendee ->
         CalculateAttendeeMusicianScore attendee musician
     )
 
