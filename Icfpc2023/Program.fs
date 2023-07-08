@@ -6,6 +6,12 @@ open System.Threading.Tasks
 open Icfpc2023
 open Icfpc2023.HttpApi
 
+let inline (|Parse|_|) (str: string) : 'a option =
+    let mutable value = Unchecked.defaultof<'a>
+    let result = (^a: (static member TryParse: string * byref< ^a> -> bool) str, &value)
+    if result then Some value
+    else None
+
 let solutionDirectory =
     let mutable directory = Environment.CurrentDirectory
     while not(isNull directory) && not <| File.Exists(Path.Combine(directory, "Icfpc2023.sln")) do
@@ -33,36 +39,41 @@ let solvers = Map [
     "dummy", DummySolver.Solve
 ]
 
-let writeScore i score =
-    let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
-    let solutionScoreText = JsonDefs.WriteSolutionScoreToJson score
-    File.WriteAllText(solutionScoreFile, solutionScoreText)
-
-let readProblem i =
-    let problemFile = Path.Combine(problemsDir, $"{i}.json")
+let readProblem (problemId: int) =
+    let problemFile = Path.Combine(problemsDir, $"{problemId}.json")
     JsonDefs.ReadProblemFromFile problemFile
 
-let readSolution i =
-    let solutionFile = Path.Combine(solutionsDir, $"{i}.json")
-    JsonDefs.ReadSolutionFromFile solutionFile
+let writeSolutionMetadata (problemId: int) metadata =
+    let solutionMetadataFile = Path.Combine(solutionsDir, $"{problemId}.meta.json")
+    let solutionMetadataText = JsonDefs.WriteSolutionMetadataToJson metadata
+    File.WriteAllText(solutionMetadataFile, solutionMetadataText)
 
-let writeSolution i solution score =
-    let solutionFile = Path.Combine(solutionsDir, $"{i}.json")
+let readSolutionMetadata (problemId: int) =
+    let solutionMetadataFile = Path.Combine(solutionsDir, $"{problemId}.meta.json")
+    JsonDefs.ReadSolutionMetadataFromFile solutionMetadataFile
+
+let readSolution (problemId: int) =
+    let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
+    let solutionMetadata = readSolutionMetadata problemId
+    let solution = JsonDefs.ReadSolutionFromFile solutionFile
+    solution, solutionMetadata
+
+let writeSolution (problemId: int) solution solutionMetadata =
+    let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
     let solutionText = JsonDefs.WriteSolutionToJson solution
     File.WriteAllText(solutionFile, solutionText)
+    writeSolutionMetadata problemId solutionMetadata
 
-    writeScore i score
-
-let readScoreOrCompute i problem =
-    let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
-    try
-        JsonDefs.ReadSolutionScoreFromFile solutionScoreFile
-    with
-    | :? FileNotFoundException ->
-        let oldSolution = readSolution i
-        let score = Scoring.CalculateScore problem oldSolution
-        writeScore i score
-        score
+let solve (problemId: int) (solverName: Solver) =
+    let problem = readProblem problemId
+    let solver = solvers[solverName]
+    let solution = solver problem
+    let score = Scoring.CalculateScore problem solution
+    let solutionMetadata = {
+        Score = score
+        Solver = solverName
+    }
+    writeSolution problemId solution solutionMetadata
 
 [<EntryPoint>]
 let main(args: string[]): int =
@@ -79,50 +90,53 @@ let main(args: string[]): int =
                 printfn $"Downloading problem {i} to \"{filePath}\"…"
                 File.WriteAllText(filePath, content)
         }
-    | [|"download"; numStr|] ->
-        let num = int numStr
+
+    | [| "download"; Parse(problemId) |] ->
         Directory.CreateDirectory problemsDir |> ignore
-        let content = runSynchronously <| DownloadProblem num
-        let filePath = Path.Combine(problemsDir, $"{string num}.json")
-        printfn $"Downloading problem {num} to \"{filePath}\"…"
+        let content = runSynchronously <| DownloadProblem problemId
+        let filePath = Path.Combine(problemsDir, $"{string problemId}.json")
+        printfn $"Downloading problem {problemId} to \"{filePath}\"…"
         File.WriteAllText(filePath, content)
 
-    | [| "solve"; numStr; solverStr |] ->
-        let num = int numStr
-        let problem = readProblem num
-        let solver = solvers[solverStr]
-        let solution = solver problem
-        let score = Scoring.CalculateScore problem solution
-        writeSolution num solution score
+    | [| "solve"; Parse(problemId); solverName |] ->
+        solve problemId solverName
 
-    | [| "solveBest"; numStr; solverStr |] ->
-        let num = int numStr
-        let problem = readProblem num
+    | [| "solve"; "all"; solverName |] ->
+        let problems = Directory.GetFiles(problemsDir, "*.json")
+        for problem in problems do
+            let problemId = Path.GetFileNameWithoutExtension problem |> int
+            printfn $"Solving problem \"{problemId}\"…"
+            solve problemId solverName
 
-        let oldSolution = readSolution num
-        let oldScore = readScoreOrCompute num problem
+    | [| "solveBest"; Parse(problemId); solverName |] ->
+        let problem = readProblem problemId
 
-        let solver = solvers[solverStr]
+        let _, oldSolutionMetadata = readSolution problemId
+        let oldScore = oldSolutionMetadata.Score
+        let oldSolver = oldSolutionMetadata.Solver
+
+        let solver = solvers[solverName]
         let newSolution = solver problem
         let newScore = Scoring.CalculateScore problem newSolution
 
         let diff = newScore - oldScore
         let diff_percent = 100.0 * (diff / oldScore)
-        printfn $"Score for problem {num}: {oldScore} -> {newScore} (%+f{diff} / %+.0f{diff_percent}%%)"
+        printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({solverName}) (%+f{diff} / %+.0f{diff_percent}%%)"
         if newScore > oldScore then
             printfn $"Writing solution..."
-            writeSolution num newSolution newScore
+            let solutionMetadata = {
+                Score = newScore
+                Solver = solverName
+            }
+            writeSolution problemId newSolution solutionMetadata
         else
             printfn "Do nothing!"
 
-    | [| "score"; numStr |] ->
-        let num = int numStr
-        let problem = readProblem num
-        let solution = readSolution num
-        let score = Scoring.CalculateScore problem solution
-        printfn $"Score: {string score}"
+    | [| "score"; Parse(problemId) |] ->
+        let _, solutionMetadata = readSolution problemId
+        printfn $"Score: {string solutionMetadata.Score}"
 
-    | [|"upload"; "all"|] ->
+    | [| "upload"; "all" |] ->
         let token = readToken()
         let solutions = Directory.GetFiles(solutionsDir, "*.json")
         for solution in solutions do

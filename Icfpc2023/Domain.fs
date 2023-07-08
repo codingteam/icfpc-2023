@@ -19,3 +19,11 @@ type Problem = {
 type Solution = {
     Placements: PointD[]
 }
+
+type Score = double
+type Solver = string
+
+type SolutionMetadata = {
+    Score: Score
+    Solver: Solver
+}
