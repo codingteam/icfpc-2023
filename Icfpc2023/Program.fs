@@ -156,7 +156,7 @@ let main(args: string[]): int =
 
     | [| "score"; Parse(problemId) |] ->
         match tryReadSolution problemId with
-        | Some(_, solutionMetadata) -> printfn $"Score: {string solutionMetadata.Score}"
+        | Some(_, solutionMetadata) -> printfn $"Score: {string solutionMetadata.Score} ({solutionMetadata.SolverName})"
         | _ -> printfn $"Problem {problemId} is not solved yet!"
 
     | [| "upload"; "all" |] ->
