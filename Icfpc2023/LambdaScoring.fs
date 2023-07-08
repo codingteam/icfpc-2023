@@ -277,10 +277,10 @@ let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem, lambda: double) =
   if Mi.X < problem.StageBottomLeft.X + MUSICAL_MIN_DISTANCE then
     PointD(- 1e3, 0)
   else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE then
-    PointD(- 1e3, 0)
+    PointD(1e3, 0)
   else if Mi.Y < problem.StageBottomLeft.Y + MUSICAL_MIN_DISTANCE then
     PointD(0, - 1e3)
   else if Mi.Y > problem.StageBottomLeft.Y + problem.StageWidth - MUSICAL_MIN_DISTANCE then
-    PointD(0, - 1e3)
+    PointD(0, 1e3)
   else
     PointD(0, 0)
