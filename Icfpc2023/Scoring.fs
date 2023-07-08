@@ -29,8 +29,7 @@ let private AnyPillarBlocksSound (pillars: Pillar[]) (musician: Musician) (atten
             let blockZone = {
                 Center1 = musician
                 Center2 = attendee
-                // Subtracting epsilon turns inclusive boundary into exclusive
-                Radius = p.Radius - System.Double.Epsilon
+                Radius = p.Radius
             }
             blockZone.Contains(p.Center))
 
