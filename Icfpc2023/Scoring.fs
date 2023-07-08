@@ -6,9 +6,7 @@ type private Musician = {
     Location: PointD
 }
 
-type SolutionScore = double
-
-let private CalculateAttendeeMusicianScore (attendee: Attendee) (musician: Musician): SolutionScore =
+let private CalculateAttendeeMusicianScore (attendee: Attendee) (musician: Musician): Score =
     let d_squared = (attendee.X - musician.Location.X) ** 2.0 + (attendee.Y - musician.Location.Y) ** 2.0
     ceil(1_000_000.0 * attendee.Tastes[musician.Instrument] / d_squared)
 
@@ -21,14 +19,14 @@ let private AnyOtherMusicianBlocksSound (musicians: Musician[]) (attendee: Atten
     |> Seq.filter(fun (i, _) -> i <> mIndex)
     |> Seq.exists(fun (_, m) -> blockZone.Contains(m.Location))
 
-let private CalculateAttendeeScore (musicians: Musician[]) (attendee: Attendee): SolutionScore =
+let private CalculateAttendeeScore (musicians: Musician[]) (attendee: Attendee): Score =
     Seq.indexed musicians
     |> Seq.sumBy(fun (i, musician) ->
         if AnyOtherMusicianBlocksSound musicians attendee i then 0.0
         else CalculateAttendeeMusicianScore attendee musician
     )
 
-let CalculateScore(problem: Problem) (solution: Solution): SolutionScore =
+let CalculateScore(problem: Problem) (solution: Solution): Score =
     let musicians =
         problem.Musicians
         |> Seq.zip solution.Placements
