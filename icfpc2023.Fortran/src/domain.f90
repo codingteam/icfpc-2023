@@ -34,6 +34,8 @@ module domain
     procedure, pass(this) :: print => room_print
     procedure, pass(this) :: score => room_score
     procedure, pass(this) :: build_taste_matrix => room_build_taste_matrix
+    procedure, pass(this) :: build_MA_distance_matrix => room_build_MA_distance_matrix
+    procedure, pass(this) :: build_MM_distance_matrix => room_build_MM_distance_matrix
   end type
 
 contains
@@ -115,10 +117,32 @@ contains
     real(8), allocatable :: Tma(:,:) ! Taste matrix
     integer :: i, j
     allocate(Tma(this%N_musicians, this%N_attendees))
-    forall ( i = 1:this%N_attendees, j = 1:this%N_musicians)
+    do concurrent ( i = 1:this%N_attendees, j = 1:this%N_musicians)
       Tma(j, i) = this%attendees(i)%tastes(this%musicians(j)%instrument)
-    end forall
+    end do
   end function room_build_taste_matrix
+
+  function room_build_MA_distance_matrix(this) result(Dma)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Dma(:,:)
+    allocate(Dma(this%N_musicians, this%N_attendees))
+    do concurrent ( i = 1:this%N_attendees, j = 1:this%N_musicians)
+      Dma(j, i) = 1._8 / ((this%attendees(i)%pos%x - this%musicians(j)%pos%x) ** 2 + (this%attendees(i)%pos%y - this%musicians(j)%pos%y) ** 2)
+    end do
+  end function room_build_MA_distance_matrix
+
+  function room_build_MM_distance_matrix(this) result(Dmm)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Dmm(:,:)
+    allocate(Dmm(this%N_musicians, this%N_musicians), source = 0._8)
+    do concurrent ( i = 1:this%N_attendees, j = 1:this%N_musicians, i /= j)
+      if (this%musicians(i)%instrument == this%musicians(j)%instrument) then
+        Dmm(j, i) = 1._8 / sqrt((this%musicians(i)%pos%x - this%musicians(j)%pos%x) ** 2 + (this%musicians(i)%pos%y - this%musicians(j)%pos%y) ** 2)
+      end if
+    end do
+  end function room_build_MM_distance_matrix
 
   real(8) function room_score(this) result(energy)
     class(room_t), intent(in) :: this
