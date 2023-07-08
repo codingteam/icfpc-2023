@@ -6,6 +6,12 @@ open System.Linq
 let OVERLAP_DISTANCE = 5.0
 let MUSICAL_MIN_DISTANCE = 10.0
 
+// #################################################
+//
+// helpers
+//
+// #################################################
+
 let attendeesPositions (problem: Problem) =
     Array.init problem.Attendees.Length (fun i ->
         let a = problem.Attendees[i]
@@ -16,6 +22,12 @@ let tasteMatrix (problem: Problem) =
     Array2D.init problem.Attendees.Length problem.Musicians.Length (fun i j ->
         problem.Attendees[i].Tastes[problem.Musicians[j]]
     )
+
+// #################################################
+//
+// energy Ai-Mj interaction
+//
+// #################################################
 
 // compute parameters of line a*x + b*y + c = 0 which pass through A and M points
 let line_parameter(A: PointD, M: PointD) =
@@ -62,6 +74,12 @@ let lambda_score_AiMj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: doub
       res <- res * lambda_factor(lambda, A[i], M[j], M[jt])
   res
 
+// #################################################
+//
+// derivative of Ai-Mj interaction over Mj
+//
+// #################################################
+
 // lambda score derivative between A_i and M_j over M_j
 //
 // A - Attendee, i-th
@@ -88,6 +106,18 @@ let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lamb
   res2 <- res2 * (T[i,j] / A[i].SquaredDistanceTo(M[j]))
   res1 + res2
 
+// #################################################
+//
+// derivative of Ai-Mj interaction over Mjt
+//
+// #################################################
+
+// #################################################
+//
+// energy Mi-Mj interaction
+//
+// #################################################
+
 // lambda score between Mi and Mj
 //
 // Mi - Musician, i-th
@@ -95,3 +125,28 @@ let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lamb
 // lambda - parameter; exact solution when -> infty
 let lambda_score_MiMj(Mi: PointD, Mj: PointD, lambda: double) =
   (2. / Math.PI * atan(lambda * (Mi.DistanceTo(Mj) - MUSICAL_MIN_DISTANCE)) + 1.0) * 100.0
+
+// #################################################
+//
+// derivative of Mi-Mj interaction over Mi
+//
+// #################################################
+
+// #################################################
+//
+// derivative of Mi-Mj interaction over Mj
+//
+// #################################################
+
+// #################################################
+//
+// energy Mi-borders interaction
+//
+// #################################################
+
+// #################################################
+//
+// derivative of Mi-borders interaction over Mi
+//
+// #################################################
+
