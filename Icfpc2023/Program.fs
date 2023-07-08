@@ -36,8 +36,8 @@ let readToken() =
     File.ReadAllText(tokenFile).Trim()
 
 let solvers = Map [
-    "dummy", DummySolver.Solve
-    "dummy2", DummySolver.Solve
+    "dummyV1", DummySolver.SolveV1
+    "dummyV2", DummySolver.SolveV2
 ]
 
 let readProblem (problemId: int) =
