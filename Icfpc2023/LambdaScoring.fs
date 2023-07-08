@@ -255,9 +255,32 @@ let lambda_score_MiMj_deriv_Mj(Mi: PointD, Mj: PointD, lambda: double) =
 //
 // #################################################
 
+let lambda_score_Mi_borders(Mi: PointD, problem: Problem, lambda: double) =
+  if Mi.X < problem.StageBottomLeft.X + MUSICAL_MIN_DISTANCE:
+    - 1e6 * 1e3
+  else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE:
+    - 1e6 * 1e3
+  else if Mi.Y < problem.StageBottomLeft.Y + MUSICAL_MIN_DISTANCE:
+    - 1e6 * 1e3
+  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageWidth - MUSICAL_MIN_DISTANCE:
+    - 1e6 * 1e3
+  else
+    0.0
+
 // #################################################
 //
 // derivative of Mi-borders interaction over Mi
 //
 // #################################################
 
+let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem, lambda: double) =
+  if Mi.X < problem.StageBottomLeft.X + MUSICAL_MIN_DISTANCE:
+    PointD(- 1e3, 0)
+  else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE:
+    PointD(- 1e3, 0)
+  else if Mi.Y < problem.StageBottomLeft.Y + MUSICAL_MIN_DISTANCE:
+    PointD(0, - 1e3)
+  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageWidth - MUSICAL_MIN_DISTANCE:
+    PointD(0, - 1e3)
+  else
+    PointD(0, 0)
