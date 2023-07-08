@@ -18,7 +18,7 @@ let private GetMusicianIndicesPerInstrument problem: Dictionary<int, list<int>> 
     let result = Dictionary<int, list<int>>()
     for m in 0 .. problem.Musicians.Length - 1 do
         let instrument = problem.Musicians[m]
-        match result.TryGetValue(m) with
+        match result.TryGetValue instrument with
         | false, _ -> result[instrument] <- [m]
         | true, existing ->
             result[instrument] <- m :: existing
@@ -46,11 +46,13 @@ let private ChooseBestPosition grid =
     let struct(pos, _) = FindMaxValue grid
     pos
 
-let private GridCoordToPhysicalCoord(struct(x, y)) =
-    PointD(double x * GridCellSize, double y * GridCellSize)
+let private GridCoordToPhysicalCoord (problem: Problem) (struct(x, y)) =
+    let (PointD(originX, originY)) = problem.StageBottomLeft
+    PointD(10.0 + originX + double x * GridCellSize, 10.0 + originY + double y * GridCellSize)
 
 #nowarn "25"
-let private PlaceMusicianAndDestroyPosition position
+let private PlaceMusicianAndDestroyPosition problem
+                                            position
                                             instrument
                                             (placements: PointD array)
                                             (musicianIndicesPerInstrument: Dictionary<int, list<int>>)
@@ -58,7 +60,8 @@ let private PlaceMusicianAndDestroyPosition position
     let musician :: rest = musicianIndicesPerInstrument[instrument]
 
     // Set to target array:
-    placements[musician] <- GridCoordToPhysicalCoord position
+    if placements[musician] <> PointD(0.0, 0.0) then failwith "Second time placement in same musician slot!"
+    placements[musician] <- GridCoordToPhysicalCoord problem position
 
     // Clean up existing data on musician:
     match rest with
@@ -67,14 +70,14 @@ let private PlaceMusicianAndDestroyPosition position
 
     // Clean up existing data on grid cell:
     let struct(x, y) = position
-    gridsPerInstrument[instrument][x, y] <- Double.MinValue
+    for grid in gridsPerInstrument do
+        grid[x, y] <- Double.MinValue
 
 let FoxtranSolveV1(problem: Problem): Solution =
     let instrumentCount = problem.Attendees[0].Tastes.Length
-    // TODO: Should we exclude the edge cells completely?
     let gridWidth, gridHeight =
-        int <| ceil (float problem.StageWidth / GridCellSize),
-        int <| ceil (float problem.StageHeight / GridCellSize)
+        1 + (int <| floor ((problem.StageWidth - 20.0) / GridCellSize)),
+        1 + (int <| floor ((problem.StageHeight - 20.0) / GridCellSize))
     let createGrid() = Array2D.zeroCreate gridWidth gridHeight
 
     let gridsPerInstrument = Array.init instrumentCount (fun _ -> createGrid())
@@ -82,8 +85,7 @@ let FoxtranSolveV1(problem: Problem): Solution =
     for cellX in 0 .. gridWidth - 1 do
       for cellY in 0 .. gridHeight - 1  do
         for instrument in 0 .. instrumentCount-1 do
-          // TODO: Place the musician in the middle of the cell?
-          let cellPosition = GridCoordToPhysicalCoord(cellX, cellY)
+          let cellPosition = GridCoordToPhysicalCoord problem (cellX, cellY)
           let solution = MakeSolutionWithSingleMusician instrument cellPosition
           let score = Scoring.CalculateNoBlockingScore problem solution
           gridsPerInstrument[instrument][cellX, cellY] <- score
@@ -93,6 +95,11 @@ let FoxtranSolveV1(problem: Problem): Solution =
     while musicianIndicesPerInstrument.Count > 0 do
         let instrument = ChooseBestInstrument musicianIndicesPerInstrument.Keys gridsPerInstrument
         let position = ChooseBestPosition gridsPerInstrument[instrument]
-        PlaceMusicianAndDestroyPosition position instrument placements musicianIndicesPerInstrument gridsPerInstrument
+        PlaceMusicianAndDestroyPosition problem
+                                        position
+                                        instrument
+                                        placements
+                                        musicianIndicesPerInstrument
+                                        gridsPerInstrument
 
     { Placements = placements }
