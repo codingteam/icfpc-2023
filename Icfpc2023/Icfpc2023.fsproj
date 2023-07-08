@@ -11,6 +11,7 @@
     <Compile Include="Scoring.fs" />
     <Compile Include="Solvers\DummySolver.fs" />
     <Compile Include="Solvers\LambdaSolver.fs" />
+    <Compile Include="Solvers\FoxtranSolver.fs" />
     <Compile Include="JsonDefs.fs" />
     <Compile Include="HttpApi.fs" />
     <Compile Include="Program.fs" />

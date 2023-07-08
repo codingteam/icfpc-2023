@@ -46,10 +46,9 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
         |> Seq.toArray
     problem.Attendees |> Array.sumBy(CalculateAttendeeScore musicians)
 
-let CalculateNoBlockingScore(problem: Problem) (solution: Solution): Score =
+let CalculateNoBlockingScore(problem: Problem) (solution: IPartialSolution): Score =
     let musicians =
-        problem.Musicians
-        |> Seq.zip solution.Placements
+        solution.GetPlacedMusicians problem.Musicians
         |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
         |> Seq.toArray
     problem.Attendees |> Array.sumBy(CalculateAttendeeNoBlockingScore musicians)

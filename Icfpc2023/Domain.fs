@@ -16,9 +16,15 @@ type Problem = {
     Attendees: Attendee[]
 }
 
-type Solution = {
-    Placements: PointD[]
-}
+type IPartialSolution =
+    abstract member GetPlacedMusicians: allMusicians: int[] -> seq<PointD * int>
+
+type Solution =
+    { Placements: PointD[] }
+    interface IPartialSolution with
+        member this.GetPlacedMusicians allMusicians =
+            allMusicians
+            |> Seq.zip this.Placements
 
 type Score = double
 type SolverName = string
