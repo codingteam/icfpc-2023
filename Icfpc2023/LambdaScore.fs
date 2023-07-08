@@ -82,10 +82,12 @@ let lambda_score_AiMj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: doub
 
 // compute derivative of parameters of line a*x + b*y + c = 0 over point M which pass through A and M points
 let line_parameter_deriv(A: PointD, M: PointD) =
-  let a = PointD(0, -1)
-  let b = PointD(1, 0)
-  let c = PointD(-a, -b)
-  a, b, c
+  let a = A.Y - M.Y
+  let b = M.X - A.X
+  let da = PointD(0, -1)
+  let db = PointD(1, 0)
+  let dc = PointD(-a, -b)
+  da, db, dc
 
 // compute derivative of distance between line (a*x + b*y + c = 0) and point P over line
 // base points (B1, B2) are using to determine if point is between them, otherwise we can set distance to infinity (1000 is enough)
@@ -103,8 +105,8 @@ let distance_point_line_deriv_line(line, linederiv, P: PointD, B1: PointD, B2: P
   else if B1.Y < y_line && B2.Y < y_line then
     PointD(0, 0)
   else
-    PointD(((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b))*(2*((x0*b - y0*a)*b - a*c)*(-2*a*da.X - 2*b*db.X)/(a*a + b*b) ** 2.0 + 2*((x0*b - y0*a)*db.X + (x0*db.X - y0*da.X)*b - a*dc.X - c*da.X)/(a*a + b*b))/2 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b))*(2*((-x0*b + y0*a)*a - b*c)*(-2*a*da.X - 2*b*db.X)/(a*a + b*b) ** 2.0 + 2*((-x0*b + y0*a)*da.X + (-x0*db.X + y0*da.X)*a - b*dc.X - c*db.X)/(a*a + b*b))/2)/sqrt((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b)) ** 2.0),
-           ((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b))*(2*((x0*b - y0*a)*b - a*c)*(-2*a*da.Y - 2*b*db.Y)/(a*a + b*b) ** 2.0 + 2*((x0*b - y0*a)*db.Y + (x0*db.Y - y0*da.Y)*b - a*dc.Y - c*da.Y)/(a*a + b*b))/2 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b))*(2*((-x0*b + y0*a)*a - b*c)*(-2*a*da.Y - 2*b*db.Y)/(a*a + b*b) ** 2.0 + 2*((-x0*b + y0*a)*da.Y + (-x0*db.Y + y0*da.Y)*a - b*dc.Y - c*db.Y)/(a*a + b*b))/2)/sqrt((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b)) ** 2.0))
+    PointD(((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b))*(2.0*((P.X*b - P.Y*a)*b - a*c)*(-2.0*a*da.X - 2.0*b*db.X)/(a*a + b*b) ** 2.0 + 2.0*((P.X*b - P.Y*a)*db.X + (P.X*db.X - P.Y*da.X)*b - a*dc.X - c*da.X)/(a*a + b*b))/2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b))*(2.0*((-P.X*b + P.Y*a)*a - b*c)*(-2.0*a*da.X - 2.0*b*db.X)/(a*a + b*b) ** 2.0 + 2.0*((-P.X*b + P.Y*a)*da.X + (-P.X*db.X + P.Y*da.X)*a - b*dc.X - c*db.X)/(a*a + b*b))/2.0)/sqrt((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b)) ** 2.0),
+           ((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b))*(2.0*((P.X*b - P.Y*a)*b - a*c)*(-2.0*a*da.Y - 2.0*b*db.Y)/(a*a + b*b) ** 2.0 + 2.0*((P.X*b - P.Y*a)*db.Y + (P.X*db.Y - P.Y*da.Y)*b - a*dc.Y - c*da.Y)/(a*a + b*b))/2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b))*(2.0*((-P.X*b + P.Y*a)*a - b*c)*(-2.0*a*da.Y - 2.0*b*db.Y)/(a*a + b*b) ** 2.0 + 2.0*((-P.X*b + P.Y*a)*da.Y + (-P.X*db.Y + P.Y*da.Y)*a - b*dc.Y - c*db.Y)/(a*a + b*b))/2.0)/sqrt((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b)) ** 2.0))
 
 // lambda score derivative between A_i and M_j over M_j
 //

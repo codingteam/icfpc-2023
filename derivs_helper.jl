@@ -31,8 +31,10 @@ function reduce(Expr::String)
   Expr = replace(Expr, "a^2" => "a*a")
   Expr = replace(Expr, "b^2" => "b*b")
   Expr = replace(Expr, "c^2" => "c*c")
-  Expr = replace(Expr, "^2" => "^2.0")
+  Expr = replace(Expr, "2" => "2.0")
   Expr = replace(Expr, "^" => " ** ")
+  Expr = replace(Expr, "x0" => "P.X")
+  Expr = replace(Expr, "y0" => "P.Y")
 end;
 
 println(reduce(string(dist)))
