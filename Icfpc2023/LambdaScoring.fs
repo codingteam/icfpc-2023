@@ -1,4 +1,4 @@
-﻿module Icfpc2023.LambdaScore
+﻿module Icfpc2023.LambdaScoring
 
 open System
 open System.Linq

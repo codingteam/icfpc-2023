@@ -40,6 +40,7 @@ let solvers = Map [
     "dummyV2", DummySolver.SolveV2
     "randomDummyV1", DummySolver.RandomDummyV1
     "randomDummyV2", DummySolver.RandomDummyV2
+    "lambda", LambdaSolver.Solve
 ]
 
 let readProblem (problemId: int) =
