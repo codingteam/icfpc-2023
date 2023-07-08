@@ -33,7 +33,7 @@ let solvers = Map [
     "dummy", DummySolver.Solve
 ]
 
-let writeSolutionScore i score =
+let writeScore i score =
     let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
     let solutionScoreText = JsonDefs.WriteSolutionScoreToJson score
     File.WriteAllText(solutionScoreFile, solutionScoreText)
@@ -51,18 +51,18 @@ let writeSolution i solution score =
     let solutionText = JsonDefs.WriteSolutionToJson solution
     File.WriteAllText(solutionFile, solutionText)
 
-    writeSolutionScore i score
+    writeScore i score
 
-let getExistingScore i problem =
+let readScoreOrCompute i problem =
     let solutionScoreFile = Path.Combine(solutionsDir, $"{i}.score.json")
     try
         JsonDefs.ReadSolutionScoreFromFile solutionScoreFile
     with
-    | :? System.IO.FileNotFoundException ->
-            let oldSolution = readSolution i
-            let score = Scoring.CalculateScore problem oldSolution
-            writeSolutionScore i score
-            score
+    | :? FileNotFoundException ->
+        let oldSolution = readSolution i
+        let score = Scoring.CalculateScore problem oldSolution
+        writeScore i score
+        score
 
 [<EntryPoint>]
 let main(args: string[]): int =
@@ -100,7 +100,7 @@ let main(args: string[]): int =
         let problem = readProblem num
 
         let oldSolution = readSolution num
-        let oldScore = getExistingScore num problem
+        let oldScore = readScoreOrCompute num problem
 
         let solver = solvers[solverStr]
         let newSolution = solver problem
