@@ -169,9 +169,13 @@ contains
     class(room_t), intent(in) :: this
     integer :: i, j
     real(8), allocatable :: Tma(:,:), Dma(:,:), Bma(:,:)
+    allocate(Tma(this%N_musicians, this%N_attendees), &
+             Dma(this%N_musicians, this%N_attendees), &
+             Bma(this%N_musicians, this%N_attendees))
     Tma = this%build_taste_matrix()
     Dma = this%build_MA_distance_matrix()
     Bma = this%build_block_matrix()
+    print *, any(Bma /= 0._8)
     if (this%version == 1) then
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     else
