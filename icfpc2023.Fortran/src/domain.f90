@@ -196,9 +196,15 @@ contains
       Dmm = this%build_MM_distance_matrix()
       Dm = 1._8 + sum(Dmm, dim=1)
       do i = 1, this%N_attendees
-        Tma(:,i) = Tma(:,i) * Dm
+        Tma(:,i) = Tma(:,i)
       end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
+      energy = 0.0
+      do i = 1, this%N_attendees
+        do j = 1, this%N_musicians
+          energy = energy + ceiling(Dm(j) * ceiling(1e6_8 * Tma(j, i) * Dma(j, i) * Bma(j, i)))
+        end do
+      end do
     end if
     energy = energy + this%error()
   end function room_score
