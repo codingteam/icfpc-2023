@@ -161,6 +161,17 @@ let main(args: string[]): int =
         | Some(_, solutionMetadata) -> printfn $"Score: {string solutionMetadata.Score}"
         | _ -> printfn $"Problem {problemId} is not solved yet!"
 
+    | [| "recalculate-score"; Parse(problemId) |] ->
+        let problem = readProblem problemId
+        match tryReadSolution problemId with
+        | Some(solution, solutionMetadata) ->
+            let updatedSolutionMetadata = {
+                Score = Scoring.CalculateScore problem solution
+                SolverName = solutionMetadata.SolverName
+            }
+            writeSolution problemId solution updatedSolutionMetadata
+        | _ -> printfn $"Problem {problemId} is not solved yet!"
+
     | [| "upload"; Parse(problemId) |] ->
         let token = readToken()
         let filename = Path.Combine(solutionsDir, $"{problemId}.json")

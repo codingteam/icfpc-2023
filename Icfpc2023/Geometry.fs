@@ -45,5 +45,22 @@ type Stadium =
         let (PointD(x1, y1)) = this.Center1
         let (PointD(x2, y2)) = this.Center2
 
-        let d = abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt((x2 - x1) ** 2.0 + (y2 - y1) ** 2)
-        d <= this.Radius
+        let distance_to_line = abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt((x2 - x1) ** 2.0 + (y2 - y1) ** 2)
+        if distance_to_line > this.Radius then false
+        else
+
+        // Calculate slope and intercept of line between the two centres:
+        // y = mx + b
+        let m = (y2 - y1) / (x2 - x1)
+        let b = y1 - m*x1
+
+        // The point on the line that's closest to p
+        // ax + by + c = 0    ===   mx - y + b = 0
+        let closest_x = (x0 + m*y0 - m*b) / (m ** 2.0 + 1.0)
+        let closest_y = (m*(x0 + m*y0) + b) / (m ** 2.0 + 1.0)
+        let closest = PointD(closest_x, closest_y)
+
+        // Now check if the closest point is between the two centres, i.e. it
+        // lies on the segment between them.
+        let epsilon = 1.0e-12
+        abs(closest.DistanceTo(this.Center1) + closest.DistanceTo(this.Center2) - this.Center1.DistanceTo(this.Center2)) < epsilon
