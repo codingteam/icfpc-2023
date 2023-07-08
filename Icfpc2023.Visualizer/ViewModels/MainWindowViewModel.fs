@@ -8,7 +8,7 @@ type MainWindowViewModel() =
 
     static member LoadProblem(problemId: int): FieldViewModel =
         let problem = Program.readProblem problemId
-        let solution, solutionMetadata = Program.readSolution problemId
+        let (Some (solution, solutionMetadata)) = Program.tryReadSolution problemId // TODO: unsafe. gsomix
         FieldViewModel(problemId, problem, solution, solutionMetadata)
 
     member val Field =
