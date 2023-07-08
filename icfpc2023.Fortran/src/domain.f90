@@ -4,7 +4,7 @@ module domain
   implicit none
   private
 
-  real(8), parameter :: BLOCK_DOSTANCE = 5._8
+  real(8), parameter :: BLOCK_DISTANCE = 5._8
   real(8), parameter :: MINIMAL_MUSICIAN_DISTANCE = 10._8
 
   type, public :: attendee_t
@@ -177,8 +177,9 @@ contains
   pure real(8) function sound_transparency_musicians(attendee, musician, musicians) result (factor)
     type(attendee_t), intent(in) :: attendee
     type(musician_t), intent(in) :: musician
-    type(musician_t), intent(in) :: musicians(:)
+    type(musician_t), intent(in), allocatable :: musicians(:)
     type(line_t) :: line
+    integer :: i
     factor = 1._8
     if (.not.allocated(musicians)) then
       return
@@ -195,7 +196,9 @@ contains
   pure real(8) function sound_transparency_pillars(attendee, musician, pillars) result (factor)
     type(attendee_t), intent(in) :: attendee
     type(musician_t), intent(in) :: musician
-    type(pillar_t), intent(in) :: pillars(:)
+    type(pillar_t), intent(in), allocatable :: pillars(:)
+    type(line_t) :: line
+    integer :: i
     factor = 1._8
     if (.not.allocated(pillars)) then
       return

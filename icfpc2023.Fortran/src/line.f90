@@ -9,7 +9,7 @@ module line_mod
     procedure, pass(this) :: distanceTo => line_distanceTo
   end type
 contains
-  subroutine line_new(this, P1, P2)
+  pure subroutine line_new(this, P1, P2)
     class(line_t), intent(inout) :: this
     type(Vec2D_t), intent(in) :: P1, P2
     this%P1 = P1
@@ -18,8 +18,8 @@ contains
     this%b = P2%x - P1%x
     this%c = - this%a * P2%x - this%b * P2%y
   end subroutine line_new
-  real(8) function line_distanceTo(this, P) result(dist)
-    class(line_t), intent(inout) :: this
+  pure real(8) function line_distanceTo(this, P) result(dist)
+    class(line_t), intent(in) :: this
     type(Vec2D_t), intent(in) :: P
     type(Vec2D_t) :: P_line
     P_line = Vec2D_t((this%b*( this%b*P%X - this%a*P%Y) - this%a*this%c) / (this%a*this%a + this%b*this%b), &
