@@ -11,6 +11,8 @@ let SolveV1(problem: Problem): Solution =
         Placements = Seq.take problem.Musicians.Length grid |> Seq.toArray
     }
 
+// Puts musicians on a hexagonal grid, achieving the optimal packing:
+// https://en.wikipedia.org/wiki/Circle_packing
 let SolveV2(problem: Problem): Solution =
     let vacantRadius = 10.0
     let xStep = vacantRadius
