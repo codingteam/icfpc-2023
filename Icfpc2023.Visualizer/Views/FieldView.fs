@@ -15,6 +15,8 @@ type FieldView() =
     let StageOutline = Pen(Brushes.DarkGray)
     let AttendeeDisplayRadius = 1.0
     let AttendeeFill = Brushes.Red
+    let MusicianDisplayRadius = 1.0
+    let MusicianFill = Brushes.Blue
 
     member this.ViewModel = this.DataContext :?> FieldViewModel
 
@@ -22,6 +24,7 @@ type FieldView() =
         this.DrawRoom(context)
         this.DrawStage(context)
         this.ViewModel.Problem.Attendees |> Seq.iter(this.DrawAttendee context)
+        this.ViewModel.Solution.Placements |> Seq.iter(this.DrawMusician context)
 
     override this.OnDataContextChanged _ =
         Dispatcher.UIThread.InvokeAsync(fun () -> this.InvalidateVisual()) |> ignore
@@ -55,3 +58,7 @@ type FieldView() =
     member private this.DrawAttendee(context: DrawingContext) (attendee: Attendee) =
         let radius = AttendeeDisplayRadius
         context.DrawEllipse(AttendeeFill, null, this.TransformPoint(attendee.X, attendee.Y), radius, radius)
+
+    member private this.DrawMusician(context: DrawingContext) (musicianPos: PointD) =
+        let radius = MusicianDisplayRadius
+        context.DrawEllipse(MusicianFill, null, this.TransformPoint(musicianPos.X, musicianPos.Y), radius, radius)

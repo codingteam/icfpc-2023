@@ -1,27 +1,23 @@
 ﻿namespace Icfpc2023.Visualizer.ViewModels
 
-open System.IO
-open Icfpc2023
 open ReactiveUI
 
 type MainWindowViewModel() =
     inherit ViewModelBase()
 
-    static member LoadProblem(path: string): FieldViewModel =
-        let problem = JsonDefs.ReadProblemFromFile path
-        FieldViewModel(path, problem)
+    static member LoadProblem(problemId: int): FieldViewModel =
+        let problem = Program.readProblem problemId
+        let solution = Program.readSolution problemId
+        FieldViewModel(problemId, problem, solution)
 
     member val Field =
-        MainWindowViewModel.LoadProblem(Path.Combine(Program.solutionDirectory, "problems", "1.json"))
+        MainWindowViewModel.LoadProblem(1)
         with get, set
 
-    member this.CurrentProblemId: string =
-        Path.GetFileNameWithoutExtension(this.Field.Path)
+    member this.CurrentProblemId = string this.Field.ProblemId
 
-    member private this.LoadProblemByNumber(number: int) =
-        this.Field <- MainWindowViewModel.LoadProblem(
-            Path.Combine(Program.solutionDirectory, "problems", $"{string number}.json")
-        )
+    member private this.LoadProblemById(problemId: int) =
+        this.Field <- MainWindowViewModel.LoadProblem(problemId)
         this.RaisePropertyChanged(nameof this.CurrentProblemId)
         this.RaisePropertyChanged(nameof this.Field)
 
@@ -29,7 +25,7 @@ type MainWindowViewModel() =
         try
             let oldProblem = this.CurrentProblemId |> int
             let newProblem = oldProblem - 1
-            this.LoadProblemByNumber newProblem
+            this.LoadProblemById newProblem
         with
         | ex -> eprintfn $"Error: {ex.Message}"
 
@@ -37,6 +33,6 @@ type MainWindowViewModel() =
         try
             let oldProblem = this.CurrentProblemId |> int
             let newProblem = oldProblem + 1
-            this.LoadProblemByNumber newProblem
+            this.LoadProblemById newProblem
         with
         | ex -> eprintfn $"Error: {ex.Message}"
