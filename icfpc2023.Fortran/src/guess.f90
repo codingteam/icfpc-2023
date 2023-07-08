@@ -22,7 +22,6 @@ contains
           musician%pos%x = j + 9
           musician%pos%y = i + 9
           musician%pos = musician%pos + room%stage_bottom_left
-          Bma = room%build_block_matrix()
           do instr = 1, room%N_instruments
             ord_pos = findloc(order_check, instr)
             if (ord_pos(1) == 0) then
@@ -42,9 +41,6 @@ contains
       order_check(findloc(order_check, max_pos(1))) = -1
     end do
     call restore_order(room, order)
-    do t = 1, room%N_musicians
-      print *, room%musicians(t)%instrument - 1, room%musicians(t)%pos%x, room%musicians(t)%pos%y
-    end do
   end subroutine guess_v1
   subroutine restore_order(room, order)
     type(room_t), intent(inout) :: room

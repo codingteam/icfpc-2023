@@ -36,6 +36,7 @@ module domain
     type(pillar_t), allocatable :: pillars(:)
   contains
     procedure, pass(this) :: load => room_load
+    procedure, pass(this) :: dump => room_dump
     procedure, pass(this) :: print => room_print
     procedure, pass(this) :: score => room_score
     procedure, pass(this) :: error => room_error
@@ -116,6 +117,20 @@ contains
     ! Close the file
     close(LU)
   end subroutine room_load
+
+  subroutine room_dump(this, filename)
+    class(room_t), intent(inout) :: this
+    character(len=*), intent(in) :: filename
+    integer :: LU, i
+    ! Open the file
+    open(newunit=LU, file=filename, status='replace', action='write')
+    write(LU, "(A)") "[musicians]"
+    write(LU, "(I0)") this%N_musicians
+    do i = 1, this%N_musicians
+      write(LU, "(F12.6,A,F12.6,A,I0)") this%musicians(i)%pos%x, " ", this%musicians(i)%pos%y, " ", this%musicians(i)%instrument
+    end do
+    close(LU)
+  end subroutine room_dump
 
   subroutine room_print(this)
     class(room_t), intent(in) :: this
