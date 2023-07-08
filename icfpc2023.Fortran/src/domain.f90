@@ -30,6 +30,7 @@ module domain
     integer :: N_musicians = 0
     integer :: N_attendees = 0
     integer :: N_pillars = 0
+    integer :: N_instruments = 0
     type(musician_t), allocatable :: musicians(:)
     type(attendee_t), allocatable :: attendees(:)
     type(pillar_t), allocatable :: pillars(:)
@@ -37,6 +38,7 @@ module domain
     procedure, pass(this) :: load => room_load
     procedure, pass(this) :: print => room_print
     procedure, pass(this) :: score => room_score
+    procedure, pass(this) :: error => room_error
     procedure, pass(this) :: build_taste_matrix => room_build_taste_matrix
     procedure, pass(this) :: build_MA_distance_matrix => room_build_MA_distance_matrix
     procedure, pass(this) :: build_MM_distance_matrix => room_build_MM_distance_matrix
@@ -94,6 +96,7 @@ contains
             max_instrument = this%musicians(i)%instrument
           end if
         end do
+        this%N_instruments = max_instrument
       else if (index(line, "[attendees]") /= 0) then
         read(LU, *) this%N_attendees
         allocate(this%attendees(this%N_attendees))
@@ -176,13 +179,30 @@ contains
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     else
       Dmm = this%build_MM_distance_matrix()
-      Dm = sum(Dmm, dim=1)
+      Dm = 1._8 + sum(Dmm, dim=1)
       do i = 1, this%N_attendees
         Tma(:,i) = Tma(:,i) * Dm
       end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     end if
+    energy = energy + this%error()
   end function room_score
+
+  real(8) function room_error(this) result(energy)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    energy = 0._8
+    do i = 1, size(this%musicians)
+      if (this%musicians(i)%pos%x < -1000) exit
+      do j = 1, size(this%musicians)
+        if (this%musicians(j)%pos%x < -1000) exit
+        if (this%musicians(j)%pos%distanceTo(this%musicians(i)%pos) < MINIMAL_MUSICIAN_DISTANCE) then
+          energy = - 1e8_8
+          return
+        end if
+      end do
+    end do
+  end function room_error
 
   pure real(8) function sound_transparency_musicians(attendee, musician, j, musicians) result (factor)
     type(attendee_t), intent(in) :: attendee
@@ -197,6 +217,7 @@ contains
     endif
     call line%new(attendee%pos, musician%pos)
     do i = 1, size(musicians)
+      if (musicians(i)%pos%x < -1000._8) exit
       if (i /= j) then
         if (line%distanceTo(musicians(i)%pos) < BLOCK_DISTANCE) then
           factor = 0._8

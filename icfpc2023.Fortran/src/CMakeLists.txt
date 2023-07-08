@@ -5,6 +5,7 @@ list(APPEND SOURCES
   ${dir}/Vec2D.f90
   ${dir}/domain.f90
   ${dir}/line.f90
+  ${dir}/guess.f90
 )
 
 set(SOURCES ${SOURCES} PARENT_SCOPE)
