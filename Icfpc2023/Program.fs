@@ -37,43 +37,87 @@ let readToken() =
 
 let solvers = Map [
     "dummy", DummySolver.Solve
+    "dummy2", DummySolver.Solve
 ]
 
 let readProblem (problemId: int) =
     let problemFile = Path.Combine(problemsDir, $"{problemId}.json")
     JsonDefs.ReadProblemFromFile problemFile
 
-let writeSolutionMetadata (problemId: int) metadata =
-    let solutionMetadataFile = Path.Combine(solutionsDir, $"{problemId}.meta.json")
-    let solutionMetadataText = JsonDefs.WriteSolutionMetadataToJson metadata
-    File.WriteAllText(solutionMetadataFile, solutionMetadataText)
-
-let readSolutionMetadata (problemId: int) =
-    let solutionMetadataFile = Path.Combine(solutionsDir, $"{problemId}.meta.json")
-    JsonDefs.ReadSolutionMetadataFromFile solutionMetadataFile
-
-let readSolution (problemId: int) =
+let tryReadSolution (problemId: int): (Solution * SolutionMetadata) option =
     let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
-    let solutionMetadata = readSolutionMetadata problemId
-    let solution = JsonDefs.ReadSolutionFromFile solutionFile
-    solution, solutionMetadata
+    let solutionMetadataFile = Path.Combine(solutionsDir, $"{problemId}.meta.json")
+    try
+        let solution = JsonDefs.ReadSolutionFromFile solutionFile
+        let solutionMetadata = JsonDefs.ReadSolutionMetadataFromFile solutionMetadataFile
+        Some (solution, solutionMetadata)
+    with :? FileNotFoundException ->
+        None
 
 let writeSolution (problemId: int) solution solutionMetadata =
     let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
+    let solutionMetadataFile = Path.Combine(solutionsDir, $"{problemId}.meta.json")
     let solutionText = JsonDefs.WriteSolutionToJson solution
+    let solutionMetadataText = JsonDefs.WriteSolutionMetadataToJson solutionMetadata
     File.WriteAllText(solutionFile, solutionText)
-    writeSolutionMetadata problemId solutionMetadata
+    File.WriteAllText(solutionMetadataFile, solutionMetadataText)
 
-let solve (problemId: int) (solverName: Solver) =
-    let problem = readProblem problemId
-    let solver = solvers[solverName]
-    let solution = solver problem
-    let score = Scoring.CalculateScore problem solution
-    let solutionMetadata = {
-        Score = score
-        Solver = solverName
-    }
-    writeSolution problemId solution solutionMetadata
+let solve (problemId: int) (solverName: SolverName) =
+    let solveWithSolver (problemId: int) (solverName: SolverName) =
+        printf $"Trying solver {solverName}... "
+        let problem = readProblem problemId
+        let solver = solvers[solverName]
+        let solution = solver problem
+        let score = Scoring.CalculateScore problem solution
+        printfn $"Score: {score}"
+        let solutionMetadata = {
+            Score = score
+            SolverName = solverName
+        }
+        solution, solutionMetadata
+
+    match solverName with
+    | "best" ->
+        solvers
+        |> Map.toSeq
+        |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
+        |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)
+    | _ ->
+        solveWithSolver problemId solverName
+
+let solveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) =
+    printfn $"Solving problem {problemId}..."
+    let solution, solutionMetadata = solve problemId solverName
+    let newSolver = solutionMetadata.SolverName
+
+    match tryReadSolution problemId with
+    | Some (_, oldSolutionMetadata) ->
+        let newScore = solutionMetadata.Score
+        let oldScore = oldSolutionMetadata.Score
+        let oldSolver = oldSolutionMetadata.SolverName
+        let diff = newScore - oldScore
+        let diff_percent = 100.0 * (diff / oldScore)
+        printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({newSolver}) (%+f{diff} / %+.0f{diff_percent}%%)"
+
+        if not preserveBest then
+            printfn $"Writing solution for problem {problemId}..."
+            writeSolution problemId solution solutionMetadata
+        elif preserveBest && (newScore > oldScore) then
+            printfn $"Writing best solution for problem {problemId}..."
+            writeSolution problemId solution solutionMetadata
+        else
+            printfn $"Do nothing!"
+
+    | None ->
+        printfn $"Score for problem {problemId}: {solutionMetadata.Score}"
+        printfn $"Writing solution for problem {problemId}..."
+        writeSolution problemId solution solutionMetadata
+
+let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
+    let problems = Directory.GetFiles(problemsDir, "*.json")
+    for problem in problems do
+        let problemId = Path.GetFileNameWithoutExtension problem |> int
+        solveCommand problemId solverName preserveBest
 
 [<EntryPoint>]
 let main(args: string[]): int =
@@ -99,42 +143,21 @@ let main(args: string[]): int =
         File.WriteAllText(filePath, content)
 
     | [| "solve"; Parse(problemId); solverName |] ->
-        solve problemId solverName
+        solveCommand problemId solverName false
+
+    | [| "solve"; Parse(problemId); solverName; "--preserve-best" |] ->
+        solveCommand problemId solverName true
 
     | [| "solve"; "all"; solverName |] ->
-        let problems = Directory.GetFiles(problemsDir, "*.json")
-        for problem in problems do
-            let problemId = Path.GetFileNameWithoutExtension problem |> int
-            printfn $"Solving problem \"{problemId}\"…"
-            solve problemId solverName
+        solveAllCommand solverName false
 
-    | [| "solveBest"; Parse(problemId); solverName |] ->
-        let problem = readProblem problemId
-
-        let _, oldSolutionMetadata = readSolution problemId
-        let oldScore = oldSolutionMetadata.Score
-        let oldSolver = oldSolutionMetadata.Solver
-
-        let solver = solvers[solverName]
-        let newSolution = solver problem
-        let newScore = Scoring.CalculateScore problem newSolution
-
-        let diff = newScore - oldScore
-        let diff_percent = 100.0 * (diff / oldScore)
-        printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({solverName}) (%+f{diff} / %+.0f{diff_percent}%%)"
-        if newScore > oldScore then
-            printfn $"Writing solution..."
-            let solutionMetadata = {
-                Score = newScore
-                Solver = solverName
-            }
-            writeSolution problemId newSolution solutionMetadata
-        else
-            printfn "Do nothing!"
+    | [| "solve"; "all"; solverName; "--preserve-best" |] ->
+        solveAllCommand solverName true
 
     | [| "score"; Parse(problemId) |] ->
-        let _, solutionMetadata = readSolution problemId
-        printfn $"Score: {string solutionMetadata.Score}"
+        match tryReadSolution problemId with
+        | Some(_, solutionMetadata) -> printfn $"Score: {string solutionMetadata.Score}"
+        | _ -> printfn $"Problem {problemId} is not solved yet!"
 
     | [| "upload"; "all" |] ->
         let token = readToken()

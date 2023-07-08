@@ -34,7 +34,7 @@ type SolutionJson = {
 
 type SolutionMetadataJson = {
     score: Score
-    solver: Solver
+    solver: SolverName
 }
 
 #nowarn "25"
@@ -67,7 +67,7 @@ let ReadSolutionFromJson(json: string): Solution =
 let WriteSolutionMetadataToJson(metadata: SolutionMetadata): string =
     let metadataJson = {
         score = metadata.Score
-        solver = metadata.Solver
+        solver = metadata.SolverName
     }
     JsonConvert.SerializeObject(metadataJson)
 
@@ -75,7 +75,7 @@ let ReadSolutionMetadataFromJson(json: string): SolutionMetadata =
     let metadataJson = JsonConvert.DeserializeObject<SolutionMetadataJson>(json)
     {
         Score = metadataJson.score
-        Solver = metadataJson.solver
+        SolverName = metadataJson.solver
     }
 
 let ReadProblemFromFile(filePath: string): Problem =
