@@ -1,7 +1,11 @@
 module domain
   use Vec2D_mod
+  use line_mod
   implicit none
   private
+
+  real(8), parameter :: BLOCK_DOSTANCE = 5._8
+  real(8), parameter :: MINIMAL_MUSICIAN_DISTANCE = 10._8
 
   type, public :: attendee_t
     type(Vec2D_t) :: pos
@@ -174,7 +178,18 @@ contains
     type(attendee_t), intent(in) :: attendee
     type(musician_t), intent(in) :: musician
     type(musician_t), intent(in) :: musicians(:)
+    type(line_t) :: line
     factor = 1._8
+    if (.not.allocated(musicians)) then
+      return
+    endif
+    call line%new(attendee%pos, musician%pos)
+    do i = 1, size(musicians)
+      if (line%distanceTo(musicians(i)%pos) < BLOCK_DISTANCE) then
+        factor = 0._8
+        exit
+      end if
+    end do
   end function sound_transparency_musicians
 
   pure real(8) function sound_transparency_pillars(attendee, musician, pillars) result (factor)
@@ -182,5 +197,15 @@ contains
     type(musician_t), intent(in) :: musician
     type(pillar_t), intent(in) :: pillars(:)
     factor = 1._8
+    if (.not.allocated(pillars)) then
+      return
+    endif
+    call line%new(attendee%pos, musician%pos)
+    do i = 1, size(pillars)
+      if (line%distanceTo(pillars(i)%pos) < pillars(i)%radius) then
+        factor = 0._8
+        exit
+      end if
+    end do
   end function sound_transparency_pillars
 end module domain
