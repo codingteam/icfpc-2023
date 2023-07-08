@@ -168,15 +168,19 @@ contains
   real(8) function room_score(this) result(energy)
     class(room_t), intent(in) :: this
     integer :: i, j
-    real(8), allocatable :: Tma(:,:), Dma(:,:), Bma(:,:)
+    real(8), allocatable :: Tma(:,:), Dma(:,:), Bma(:,:), Dmm(:,:), Dm(:)
     Tma = this%build_taste_matrix()
     Dma = this%build_MA_distance_matrix()
     Bma = this%build_block_matrix()
     if (this%version == 1) then
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     else
+      Dmm = this%build_MM_distance_matrix()
+      Dm = sum(Dmm, dim=1)
+      do i = 1, this%N_attendees
+        Tma(:,i) = Tma(:,i) * Dm
+      end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
-      stop "ERROR!"
     end if
   end function room_score
 
