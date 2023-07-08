@@ -28,6 +28,10 @@
                     <Label Content="{Binding MusiciansCount}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
+                    <Label Content="Pillar count:"/>
+                    <Label Content="{Binding MusiciansCount}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
                     <Label Content="Score:"/>
                     <Label Content="{Binding Score}"/>
                 </StackPanel>

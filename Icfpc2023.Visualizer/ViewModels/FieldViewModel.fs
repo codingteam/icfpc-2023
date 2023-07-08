@@ -2,7 +2,10 @@
 
 open Icfpc2023
 
-type FieldViewModel(problemId: int, problem: Problem, solution: Solution, solutionMetadata: SolutionMetadata) =
+type FieldViewModel(problemId: int,
+                    problem: Problem,
+                    solution: Solution option,
+                    solutionMetadata: SolutionMetadata option) =
     member val ProblemId = problemId
     member val Problem = problem
     member val Solution = solution

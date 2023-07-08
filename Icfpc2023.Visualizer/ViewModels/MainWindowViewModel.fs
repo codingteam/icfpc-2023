@@ -9,7 +9,10 @@ type MainWindowViewModel() =
 
     static member LoadProblem(problemId: int): FieldViewModel =
         let problem = Program.readProblem problemId
-        let (Some (solution, solutionMetadata)) = Program.tryReadSolution problemId // TODO: unsafe. gsomix
+        let solution, solutionMetadata =
+            Program.tryReadSolution problemId
+            |> Option.map(fun (s, m) -> Some s, Some m)
+            |> Option.defaultValue(None, None)
         FieldViewModel(problemId, problem, solution, solutionMetadata)
 
     member val Field =
@@ -22,8 +25,11 @@ type MainWindowViewModel() =
 
     member this.MusiciansCount = string this.Field.Problem.Musicians.Length
 
-    member this.Score = string this.Field.SolutionMetadata.Score
-    member this.Solver = string this.Field.SolutionMetadata.SolverName
+    member this.PillarCount = string this.Field.Problem.Pillars.Length
+
+    member this.Score = this.Field.SolutionMetadata |> Option.map(fun s -> string s.Score) |> Option.defaultValue "N/A"
+    member this.Solver =
+        this.Field.SolutionMetadata |> Option.map(fun m -> string m.SolverName) |> Option.defaultValue "N/A"
 
     member private this.LoadProblemById(problemId: int) =
         this.Field <- MainWindowViewModel.LoadProblem(problemId)
@@ -39,7 +45,7 @@ type MainWindowViewModel() =
             let newProblem = oldProblem - 1
             this.LoadProblemById newProblem
         with
-        | ex -> eprintfn $"Error: {ex.Message}"
+        | ex -> eprintfn $"Error: {ex.Message}\r\n{ex.StackTrace}"
 
     member this.LoadNext(): unit =
         try
@@ -47,4 +53,4 @@ type MainWindowViewModel() =
             let newProblem = oldProblem + 1
             this.LoadProblemById newProblem
         with
-        | ex -> eprintfn $"Error: {ex.Message}"
+        | ex -> eprintfn $"Error: {ex.Message}\r\n{ex.StackTrace}"
