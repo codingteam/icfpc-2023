@@ -38,7 +38,7 @@ let line_parameter(A: PointD, M: PointD) =
 
 // compute distance between line (a*x + b*y + c = 0) and point P
 // base points (B1, B2) are using to determine if point is between them, otherwise we can set distance to infinity (1000 is enough)
-let distance_point_line(line, P: PointD, B1: PointD, B2: PointD) =
+let distance_point_line(line: double*double*double, P: PointD, B1: PointD, B2: PointD) =
   let a, b, c = line
   let x_line = (b*( b*P.X - a*P.Y) - a*c) / (a*a + b*b)
   let y_line = (a*(-b*P.X + a*P.Y) - b*c) / (a*a + b*b)
@@ -91,7 +91,7 @@ let line_parameter_deriv(A: PointD, M: PointD) =
 
 // compute derivative of distance between line (a*x + b*y + c = 0) and point P over line
 // base points (B1, B2) are using to determine if point is between them, otherwise we can set distance to infinity (1000 is enough)
-let distance_point_line_deriv_line(line, linederiv, P: PointD, B1: PointD, B2: PointD) =
+let distance_point_line_deriv_line(line: double*double*double, linederiv: PointD*PointD*PointD, P: PointD, B1: PointD, B2: PointD) =
   let a, b, c = line
   let da, db, dc = linederiv
   let x_line = (b*( b*P.X - a*P.Y) - a*c) / (a*a + b*b)
@@ -108,13 +108,24 @@ let distance_point_line_deriv_line(line, linederiv, P: PointD, B1: PointD, B2: P
     PointD(((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b))*(2.0*((P.X*b - P.Y*a)*b - a*c)*(-2.0*a*da.X - 2.0*b*db.X)/(a*a + b*b) ** 2.0 + 2.0*((P.X*b - P.Y*a)*db.X + (P.X*db.X - P.Y*da.X)*b - a*dc.X - c*da.X)/(a*a + b*b))/2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b))*(2.0*((-P.X*b + P.Y*a)*a - b*c)*(-2.0*a*da.X - 2.0*b*db.X)/(a*a + b*b) ** 2.0 + 2.0*((-P.X*b + P.Y*a)*da.X + (-P.X*db.X + P.Y*da.X)*a - b*dc.X - c*db.X)/(a*a + b*b))/2.0)/sqrt((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b)) ** 2.0),
            ((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b))*(2.0*((P.X*b - P.Y*a)*b - a*c)*(-2.0*a*da.Y - 2.0*b*db.Y)/(a*a + b*b) ** 2.0 + 2.0*((P.X*b - P.Y*a)*db.Y + (P.X*db.Y - P.Y*da.Y)*b - a*dc.Y - c*da.Y)/(a*a + b*b))/2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b))*(2.0*((-P.X*b + P.Y*a)*a - b*c)*(-2.0*a*da.Y - 2.0*b*db.Y)/(a*a + b*b) ** 2.0 + 2.0*((-P.X*b + P.Y*a)*da.Y + (-P.X*db.Y + P.Y*da.Y)*a - b*dc.Y - c*db.Y)/(a*a + b*b))/2.0)/sqrt((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b)) ** 2.0))
 
+// derivative of lambda factor over Mj (jt-th Musician between i-th Attendee and j-th Musician)
+// when overlapping is, return 0
+// when no overlapping, return 1
+// the idea is to replace step function with continuous function with some parameter for easier gradient-based optimization algorithms
+// lambda changes behavior of gate
+let lambda_factor_deriv_Mj(lambda: double, Ai: PointD, Mj: PointD, Mjt: PointD) =
+  let line_Ai_Mj = line_parameter(Ai, Mj) // (a, b, c) typle
+  let line_Ai_Mj_der = line_parameter_deriv(Ai, Mj) // (da, db, dc) typle
+  let distance = distance_point_line(line_Ai_Mj, Mjt, Ai, Mj)
+  let line_der = distance_point_line_deriv_line(line_Ai_Mj, line_Ai_Mj_der, Mjt, Ai, Mj)
+  line_der * 2. / Math.PI * lambda / (lambda * lambda * (distance - OVERLAP_DISTANCE)*(distance - OVERLAP_DISTANCE) + 1.0)
+
 // lambda score derivative between A_i and M_j over M_j
 //
 // A - Attendee, i-th
 // M - Musician, j-th
 // T - taste matrix
 // lambda - parameter; exact solution when -> infty
-// NOTE: derivatives over lambda_factor are not implemented yet
 let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: double) =
   let mutable res1 = PointD(-2.0 * T[i,j] * (A[i].X - M[j].X) / (A[i].SquaredDistanceTo(M[j])) ** 2.0,
                             -2.0 * T[i,j] * (A[i].Y - M[j].Y) / (A[i].SquaredDistanceTo(M[j])) ** 2.0)
@@ -124,13 +135,11 @@ let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lamb
       res1 <- res1 * lambda_factor(lambda, A[i], M[j], M[jt])
   for jtt in Enumerable.Range(0, M.Length) do
     if jtt <> j then
-      let mutable tmpX = lambda_factor(lambda, A[i], M[j], M[jtt]) // deriv over X
-      let mutable tmpY = lambda_factor(lambda, A[i], M[j], M[jtt]) // deriv over Y
+      let mutable Pt = lambda_factor_deriv_Mj(lambda, A[i], M[j], M[jtt])
       for jt in Enumerable.Range(0, M.Length) do
         if jt <> j || jt <> jtt then
-          tmpX <- tmpX * lambda_factor(lambda, A[i], M[j], M[jt])
-          tmpY <- tmpY * lambda_factor(lambda, A[i], M[j], M[jt])
-      res2 <- res2 + PointD(tmpX, tmpY)
+          Pt <- Pt * lambda_factor(lambda, A[i], M[j], M[jt])
+      res2 <- res2 + Pt
   res2 <- res2 * (T[i,j] / A[i].SquaredDistanceTo(M[j]))
   res1 + res2
 
