@@ -55,7 +55,7 @@ contains
     character(len=100) :: line
     integer :: LU
     integer :: input_version
-    integer :: i, status, max_instrument = 0
+    integer :: i, status, max_instrument = 1
     ! Open the file
     open(newunit=LU, file=filename, status='old', action='read', iostat=status)
 
@@ -87,6 +87,7 @@ contains
         allocate(this%musicians(this%N_musicians))
         do i = 1, this%N_musicians
           read(LU, *) this%musicians(i)%pos%x, this%musicians(i)%pos%y, this%musicians(i)%instrument
+          this%musicians(i)%instrument = this%musicians(i)%instrument + 1
         end do
         do i = 1, this%N_musicians
           if (this%musicians(i)%instrument > max_instrument) then
@@ -97,7 +98,7 @@ contains
         read(LU, *) this%N_attendees
         allocate(this%attendees(this%N_attendees))
         do i = 1, this%N_attendees
-          allocate(this%attendees(i)%tastes(0:max_instrument))
+          allocate(this%attendees(i)%tastes(max_instrument))
           read(LU, *) this%attendees(i)%pos%x, this%attendees(i)%pos%y, this%attendees(i)%tastes(:)
         end do
       else if (index(line, "[pillars]") /= 0) then
@@ -171,7 +172,12 @@ contains
     Tma = this%build_taste_matrix()
     Dma = this%build_MA_distance_matrix()
     Bma = this%build_block_matrix()
-    energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
+    if (this%version == 1) then
+      energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
+    else
+      energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
+      stop "ERROR!"
+    end if
   end function room_score
 
   pure real(8) function sound_transparency_musicians(attendee, musician, musicians) result (factor)
