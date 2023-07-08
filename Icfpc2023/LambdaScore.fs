@@ -80,6 +80,32 @@ let lambda_score_AiMj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: doub
 //
 // #################################################
 
+// compute derivative of parameters of line a*x + b*y + c = 0 over point M which pass through A and M points
+let line_parameter_deriv(A: PointD, M: PointD) =
+  let a = PointD(0, -1)
+  let b = PointD(1, 0)
+  let c = PointD(-a, -b)
+  a, b, c
+
+// compute derivative of distance between line (a*x + b*y + c = 0) and point P over line
+// base points (B1, B2) are using to determine if point is between them, otherwise we can set distance to infinity (1000 is enough)
+let distance_point_line_deriv_line(line, linederiv, P: PointD, B1: PointD, B2: PointD) =
+  let a, b, c = line
+  let da, db, dc = linederiv
+  let x_line = (b*( b*P.X - a*P.Y) - a*c) / (a*a + b*b)
+  let y_line = (a*(-b*P.X + a*P.Y) - b*c) / (a*a + b*b)
+  if B1.X > x_line && B2.X > x_line then
+    PointD(0, 0)
+  else if B1.X < x_line && B2.X < x_line then
+    PointD(0, 0)
+  else if B1.Y > y_line && B2.Y > y_line then
+    PointD(0, 0)
+  else if B1.Y < y_line && B2.Y < y_line then
+    PointD(0, 0)
+  else
+    PointD(((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b))*(2*((x0*b - y0*a)*b - a*c)*(-2*a*da.X - 2*b*db.X)/(a*a + b*b) ** 2.0 + 2*((x0*b - y0*a)*db.X + (x0*db.X - y0*da.X)*b - a*dc.X - c*da.X)/(a*a + b*b))/2 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b))*(2*((-x0*b + y0*a)*a - b*c)*(-2*a*da.X - 2*b*db.X)/(a*a + b*b) ** 2.0 + 2*((-x0*b + y0*a)*da.X + (-x0*db.X + y0*da.X)*a - b*dc.X - c*db.X)/(a*a + b*b))/2)/sqrt((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b)) ** 2.0),
+           ((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b))*(2*((x0*b - y0*a)*b - a*c)*(-2*a*da.Y - 2*b*db.Y)/(a*a + b*b) ** 2.0 + 2*((x0*b - y0*a)*db.Y + (x0*db.Y - y0*da.Y)*b - a*dc.Y - c*da.Y)/(a*a + b*b))/2 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b))*(2*((-x0*b + y0*a)*a - b*c)*(-2*a*da.Y - 2*b*db.Y)/(a*a + b*b) ** 2.0 + 2*((-x0*b + y0*a)*da.Y + (-x0*db.Y + y0*da.Y)*a - b*dc.Y - c*db.Y)/(a*a + b*b))/2)/sqrt((-x0 + ((x0*b - y0*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-y0 + ((-x0*b + y0*a)*a - b*c)/(a*a + b*b)) ** 2.0))
+
 // lambda score derivative between A_i and M_j over M_j
 //
 // A - Attendee, i-th
