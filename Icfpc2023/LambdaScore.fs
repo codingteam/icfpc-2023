@@ -149,6 +149,56 @@ let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lamb
 //
 // #################################################
 
+// compute derivative distance between line (a*x + b*y + c = 0) and point P over point P
+// base points (B1, B2) are using to determine if point is between them, otherwise we can set distance to infinity (1000 is enough)
+let distance_point_line_deriv_point(line: double*double*double, P: PointD, B1: PointD, B2: PointD) =
+  let a, b, c = line
+  let x_line = (b*( b*P.X - a*P.Y) - a*c) / (a*a + b*b)
+  let y_line = (a*(-b*P.X + a*P.Y) - b*c) / (a*a + b*b)
+  if B1.X > x_line && B2.X > x_line then
+    PointD(0, 0)
+  else if B1.X < x_line && B2.X < x_line then
+    PointD(0, 0)
+  else if B1.Y > y_line && B2.Y > y_line then
+    PointD(0, 0)
+  else if B1.Y < y_line && B2.Y < y_line then
+    PointD(0, 0)
+  else
+    PointD(((-2.0 + 2.0*b*b/(a*a + b*b))*(-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b))/2.0 - (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b))*a*b/(a*a + b*b))/sqrt((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b)) ** 2.0),
+           ((-2.0 + 2.0*a*a/(a*a + b*b))*(-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b))/2.0 - (-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b))*a*b/(a*a + b*b))/sqrt((-P.X + ((P.X*b - P.Y*a)*b - a*c)/(a*a + b*b)) ** 2.0 + (-P.Y + ((-P.X*b + P.Y*a)*a - b*c)/(a*a + b*b)) ** 2.0))
+
+// derivative of lambda factor over Mjt (jt-th Musician between i-th Attendee and j-th Musician)
+// when overlapping is, return 0
+// when no overlapping, return 1
+// the idea is to replace step function with continuous function with some parameter for easier gradient-based optimization algorithms
+// lambda changes behavior of gate
+let lambda_factor_deriv_Mjt(lambda: double, Ai: PointD, Mj: PointD, Mjt: PointD) =
+  let line_Ai_Mj = line_parameter(Ai, Mj) // (a, b, c) typle
+  let distance = distance_point_line(line_Ai_Mj, Mjt, Ai, Mj)
+  let point_der = distance_point_line_deriv_point(line_Ai_Mj, Mjt, Ai, Mj)
+  point_der * 2. / Math.PI * lambda / (lambda * lambda * (distance - OVERLAP_DISTANCE)*(distance - OVERLAP_DISTANCE) + 1.0)
+
+// lambda score derivative between A_i and M_j over M_jt
+//
+// A - Attendee, i-th
+// M - Musician, j-th
+// T - taste matrix
+// lambda - parameter; exact solution when -> infty
+// jt-th element is not j-th element; function returns an array of derivatives
+let lambda_derivative_AiMj_Mjt(A: PointD[], M: PointD[], i, j, T: double[,], lambda: double) =
+  let first = PointD(T[i,j] / (A[i].SquaredDistanceTo(M[j])),
+                     T[i,j] / (A[i].SquaredDistanceTo(M[j])))
+  let mutable musicianDeriv = Array.create M.Length first
+  for jt in Enumerable.Range(0, M.Length) do
+    if jt <> j then
+      for e in Enumerable.Range(0, M.Length) do
+        if e <> jt then
+          musicianDeriv[jt] <- musicianDeriv[jt] * lambda_factor(lambda, A[i], M[j], M[jt])
+        else
+          // scalar product, derivative is from `lambda_factor_deriv_Mjt` only
+          musicianDeriv[jt] <- musicianDeriv[jt] * lambda_factor_deriv_Mjt(lambda, A[i], M[j], M[jt])
+  musicianDeriv
+
 // #################################################
 //
 // energy Mi-Mj interaction

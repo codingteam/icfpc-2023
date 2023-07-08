@@ -20,6 +20,9 @@ dist = ((x_line-x0)^2+(y_line-y0)^2)^(1 // 2);
 dist_dx = diff(dist, x);
 dist_dy = diff(dist, y);
 
+dist_dx0 = diff(dist, x0);
+dist_dy0 = diff(dist, y0);
+
 function reduce(Expr::String)
   Expr = replace(Expr, "(x, y)" => "")
   Expr = replace(Expr, "Derivative(a, x)" => "da.X")
@@ -37,6 +40,17 @@ function reduce(Expr::String)
   Expr = replace(Expr, "y0" => "P.Y")
 end;
 
+println("##########")
+println("Dist:")
 println(reduce(string(dist)))
+println()
+println("##########")
+println("dDist/dLine:")
 println(reduce(string(dist_dx)))
 println(reduce(string(dist_dy)))
+println()
+println("##########")
+println("dDist/dPoint:")
+println(reduce(string(dist_dx0)))
+println(reduce(string(dist_dy0)))
+println()
