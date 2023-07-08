@@ -1,5 +1,6 @@
 ﻿namespace Icfpc2023.Visualizer.ViewModels
 
+open System
 open Icfpc2023
 open ReactiveUI
 
@@ -12,7 +13,9 @@ type MainWindowViewModel() =
         FieldViewModel(problemId, problem, solution, solutionMetadata)
 
     member val Field =
-        MainWindowViewModel.LoadProblem(1)
+        let cmdArgs = Environment.GetCommandLineArgs() |> Array.skip 1
+        let problemId = if cmdArgs.Length > 0 then int cmdArgs[0] else 1
+        MainWindowViewModel.LoadProblem(problemId)
         with get, set
 
     member this.ProblemId = string this.Field.ProblemId

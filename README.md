@@ -38,9 +38,9 @@ $ cd Icfpc2023 && dotnet run -- [arguments here…]
 
 ### Visualizer
 ```console
-$ dotnet run --project Icfpc2023.Visualizer
+$ dotnet run --project Icfpc2023.Visualizer [-- <problemNumber>]
     # or, alternately:
-$ cd Icfpc2023.Visualizer && dotnet run
+$ cd Icfpc2023.Visualizer && dotnet run [-- <problemNumber>]
 ```
 
 ### Commands
