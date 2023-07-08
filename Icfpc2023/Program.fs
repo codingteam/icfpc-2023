@@ -35,14 +35,20 @@ let readToken() =
         failwith $"Please save the access token to file \"{tokenFile}\"."
     File.ReadAllText(tokenFile).Trim()
 
-let solvers = Map [
-    "dummyV1", DummySolver.SolveV1
-    "dummyV2", DummySolver.SolveV2
+let nondeterministic_solvers = Map [
     "randomDummyV1", DummySolver.RandomDummyV1
     "randomDummyV2", DummySolver.RandomDummyV2
-    "lambda", LambdaSolver.Solve
-    "foxtranV1", FoxtranSolver.FoxtranSolveV1
 ]
+
+let solvers = Map(Seq.concat [
+        seq {
+            "dummyV1", DummySolver.SolveV1
+            "dummyV2", DummySolver.SolveV2
+            "lambda", LambdaSolver.Solve
+            "foxtranV1", FoxtranSolver.FoxtranSolveV1
+        };
+        Map.toSeq nondeterministic_solvers
+    ])
 
 let readProblem (problemId: int) =
     let problemFile = Path.Combine(problemsDir, $"{problemId}.json")
@@ -83,6 +89,11 @@ let solve (problemId: int) (solverName: SolverName) =
     match solverName with
     | "best" ->
         solvers
+        |> Map.toSeq
+        |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
+        |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)
+    | "best-nondeterministic" ->
+        nondeterministic_solvers
         |> Map.toSeq
         |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
         |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)

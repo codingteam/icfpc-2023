@@ -67,6 +67,15 @@ Solve all problems using dummy solver:
 $ dotnet run --project Icfpc2023 -- solve all dummy
 ```
 
+Solve all problems using non-deterministic solvers and save solutions if they
+improve upon the existing ones:
+```console
+$ dotnet run --project Icfpc2023 -- solve all best-nondeterministic --preserve-best
+```
+
+It makes sense to re-run that command from time to time because
+non-deterministic solvers have a chance of finding a better solution.
+
 Solve problem 1 using all solvers and picking the best solution:
 ```console
 $ dotnet run --project Icfpc2023 -- solve all best
