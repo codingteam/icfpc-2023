@@ -1,12 +1,38 @@
 module Icfpc2023.DummySolver
 
+let private shuffle<'T>(a: 'T[]) =
+    let random = System.Random()
+    for i in 0 .. a.Length - 1 do
+        let j = random.Next(i, a.Length)
+        let ai = a.[i]
+        a.[i] <- a.[j]
+        a.[j] <- ai
+
+let private rectangularGrid(width: double, height: double, step: double, offset: PointD): seq<PointD> =
+    seq {
+        for x in step .. step .. width-step do
+            for y in step .. step .. height-step ->
+                offset + PointD(x, y)
+    }
+
+let private hexagonalGrid(width: double, height: double, step: double, offset: PointD): seq<PointD> =
+    let xStep = step
+    let yStep = step * sqrt 3.0
+    let oddRows = seq {
+        for y in step .. 2.0*yStep .. height-step do
+            for x in step .. xStep .. width-step ->
+                offset + PointD(x, y)
+    }
+    let evenRows = seq {
+        for y in step+yStep .. 2.0*yStep .. height-step do
+            for x in step*1.5 .. xStep .. width-step ->
+                offset + PointD(x, y)
+    }
+    Seq.concat [oddRows; evenRows]
+
 let SolveV1(problem: Problem): Solution =
     let vacantRadius = 10.0
-    let grid = seq {
-        for x in vacantRadius .. vacantRadius .. problem.StageWidth-vacantRadius do
-            for y in vacantRadius .. vacantRadius .. problem.StageHeight-vacantRadius ->
-                problem.StageBottomLeft + PointD(x, y)
-    }
+    let grid = rectangularGrid(problem.StageWidth, problem.StageHeight, vacantRadius, problem.StageBottomLeft)
     {
         Placements = Seq.take problem.Musicians.Length grid |> Seq.toArray
     }
@@ -15,19 +41,39 @@ let SolveV1(problem: Problem): Solution =
 // https://en.wikipedia.org/wiki/Circle_packing
 let SolveV2(problem: Problem): Solution =
     let vacantRadius = 10.0
-    let xStep = vacantRadius
-    let yStep = vacantRadius * sqrt 3.0
-    let oddRows = seq {
-        for y in vacantRadius .. 2.0*yStep .. problem.StageHeight-vacantRadius do
-            for x in vacantRadius .. xStep .. problem.StageWidth-vacantRadius ->
-                problem.StageBottomLeft + PointD(x, y)
-    }
-    let evenRows = seq {
-        for y in vacantRadius+yStep .. 2.0*yStep .. problem.StageHeight-vacantRadius do
-            for x in vacantRadius*1.5 .. xStep .. problem.StageWidth-vacantRadius ->
-                problem.StageBottomLeft + PointD(x, y)
-    }
-    let grid = Seq.concat [oddRows; evenRows]
+    let grid = hexagonalGrid(problem.StageWidth, problem.StageHeight, vacantRadius, problem.StageBottomLeft)
     {
         Placements = Seq.take problem.Musicians.Length grid |> Seq.toArray
+    }
+
+/// Like SolveV1, but fills the rectangular grid randomly rather than
+/// progressively.
+let RandomDummyV1(problem: Problem): Solution =
+    let vacantRadius = 10.0
+    let grid =
+        rectangularGrid(problem.StageWidth, problem.StageHeight, vacantRadius, problem.StageBottomLeft)
+        |> Seq.toArray
+    shuffle grid
+    let placements =
+        Array.toSeq grid
+        |> Seq.take problem.Musicians.Length
+        |> Seq.toArray
+    {
+        Placements = placements
+    }
+
+/// Like SolveV2, but fills the hexagonal grid randomly rather than
+/// progressively.
+let RandomDummyV2(problem: Problem): Solution =
+    let vacantRadius = 10.0
+    let grid =
+        hexagonalGrid(problem.StageWidth, problem.StageHeight, vacantRadius, problem.StageBottomLeft)
+        |> Seq.toArray
+    shuffle grid
+    let placements =
+        Array.toSeq grid
+        |> Seq.take problem.Musicians.Length
+        |> Seq.toArray
+    {
+        Placements = placements
     }

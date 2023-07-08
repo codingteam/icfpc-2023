@@ -38,6 +38,8 @@ let readToken() =
 let solvers = Map [
     "dummyV1", DummySolver.SolveV1
     "dummyV2", DummySolver.SolveV2
+    "randomDummyV1", DummySolver.RandomDummyV1
+    "randomDummyV2", DummySolver.RandomDummyV2
 ]
 
 let readProblem (problemId: int) =
