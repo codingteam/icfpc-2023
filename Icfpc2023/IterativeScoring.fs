@@ -86,12 +86,25 @@ type PillarsBlocks =
         MusiciansCount: int
         AttendeesCount: int
         PillarsCount: int
-        Blocks: ImmutableArray<bool>
+        Blocks: ImmutableArray<ImmutableArray<ImmutableArray<bool>>>
     }
 
     static member Create(musiciansCount: int) (attendeesCount: int) (pillarsCount: int): PillarsBlocks =
-        let elements_count = musiciansCount * attendeesCount * pillarsCount
-        let blocks = (Array.zeroCreate elements_count).ToImmutableArray()
+        let innermost =
+            let builder = ImmutableArray.CreateBuilder<bool>()
+            for _ in 0 .. pillarsCount-1 do
+                builder.Add(false)
+            builder.ToImmutable()
+        let inner =
+            let builder = ImmutableArray.CreateBuilder<ImmutableArray<bool>>()
+            for _ in 0 .. attendeesCount-1 do
+                builder.Add(innermost)
+            builder.ToImmutable()
+        let blocks =
+            let builder = ImmutableArray.CreateBuilder<ImmutableArray<ImmutableArray<bool>>>()
+            for _ in 0 .. musiciansCount-1 do
+                builder.Add(inner)
+            builder.ToImmutable()
         {
             MusiciansCount = musiciansCount
             AttendeesCount = attendeesCount
@@ -99,28 +112,25 @@ type PillarsBlocks =
             Blocks = blocks
         }
 
-    member private this.GetIndex(pillarId: int) (musicianId: int) (attendeeId: int): int =
-        (
-            attendeeId * this.MusiciansCount
-            + musicianId
-        ) * this.PillarsCount
-        + pillarId
-
-    member this.SetBlocks(pillarId: int) (musicianId: int) (attendeeId: int) (blocks: bool): PillarsBlocks =
+    member private this.IsSoundBlockedBy(pillarId: int) (musicianId: int) (attendeeId: int): bool =
         if this.PillarsCount > 0
+        then this.Blocks.[musicianId].[attendeeId].[pillarId]
+        else false
+
+    member this.SetBlocks(musicianId: int) (attendeeId: int) (pillarId: int) (blocks: bool): PillarsBlocks =
+        if blocks <> this.IsSoundBlockedBy pillarId musicianId attendeeId
         then
-            let index = this.GetIndex pillarId musicianId attendeeId
-            if blocks <> this.Blocks.[index]
-            then { this with Blocks = this.Blocks.SetItem(index, blocks) }
-            else this
+            let innermost =
+                this.Blocks.[musicianId].[attendeeId].SetItem(pillarId, blocks)
+            let inner =
+                this.Blocks.[musicianId].SetItem(attendeeId, innermost)
+            let blocks =
+                this.Blocks.SetItem(musicianId, inner)
+            { this with Blocks = blocks }
         else this
 
-    member this.IsSoundBlockedBy(pillarId: int) (musicianId: int) (attendeeId: int): bool =
-        if this.PillarsCount > 0
-        then
-            let index = this.GetIndex pillarId musicianId attendeeId
-            this.Blocks[index]
-        else false
+    member this.IsSoundBlockedBetween(musicianId: int) (attendeeId: int): bool =
+        this.Blocks.[musicianId].[attendeeId] |> Seq.exists id
 
 type MusicianAttendeeImpact =
     {
@@ -292,8 +302,27 @@ type State =
             this
 
     member private this.UpdatePillarsBlocks(musicianId: int): State =
-        // TODO: failwith "unimplemented"
-        this
+        let me = this.MusicianPlacements.[musicianId]
+
+        Seq.indexed this.Problem.Attendees
+        |> Seq.fold
+            (fun state (attendeeId, attendee) ->
+                let attendee = PointD(attendee.X, attendee.Y)
+                let pillarsBlocks =
+                    Seq.indexed this.Problem.Pillars
+                    |> Seq.fold
+                        (fun (blocks: PillarsBlocks) (pillarId, pillar) ->
+                            let blockZone =
+                                {
+                                    Center1 = me
+                                    Center2 = attendee
+                                    Radius = pillar.Radius
+                                }
+                            blocks.SetBlocks musicianId attendeeId pillarId (blockZone.Contains pillar.Center)
+                        )
+                        this.PillarBlocksSoundBetweenMusicianAndAttendee
+                { state with PillarBlocksSoundBetweenMusicianAndAttendee = pillarsBlocks })
+            this
 
     member private this.UpdateMusicianAttendeeImpact(musicianId: int): State =
         let instrument = this.Problem.Musicians.[musicianId]
@@ -306,6 +335,8 @@ type State =
         |> Seq.fold
             (fun state (attendeeId, attendee) ->
                 if state.MusicianBlocksOtherForAttendee.IsSoundBlockedBetween musicianId attendeeId
+                then state
+                else if state.PillarBlocksSoundBetweenMusicianAndAttendee.IsSoundBlockedBetween musicianId attendeeId
                 then state
                 else
                     let distance = state.MusicianAttendeeDistance.Distance musicianId attendeeId
@@ -334,8 +365,16 @@ type State =
         if this.Problem.Pillars.Length = 0
         then state // nothing to do -- closeness factors are not active in problems without pillars
         else
-            // TODO: failwith "unimplemented"
-            state
+            let myInstrument = state.Problem.Musicians.[musicianId]
+            let sum_of_reciprocals =
+                seq { 0 .. state.Problem.Musicians.Length-1 }
+                |> Seq.filter (fun otherId -> otherId <> musicianId)
+                |> Seq.filter (fun otherId -> state.Problem.Musicians.[otherId] = myInstrument)
+                |> Seq.map (fun otherId -> 1.0 / state.MusicianDistances.Distance musicianId otherId)
+                |> Seq.sum
+            let closeness_factor = 1.0 + sum_of_reciprocals
+            let factors = state.MusicianClosenessFactor.SetClosenessFactor musicianId closeness_factor
+            { state with MusicianClosenessFactor = factors }
 
     member private this.UpdateMusicianAttendeeTotalImpact(musicianId: int): State =
         let state =
