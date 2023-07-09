@@ -109,7 +109,6 @@ contains
               m = m + 1
             end do
           end do
-          print *, "here"
         end block
       case default
         error stop "unknown algorigtm"
