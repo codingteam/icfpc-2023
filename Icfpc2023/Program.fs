@@ -1,6 +1,7 @@
 open System
 open System.IO
 open System.Text
+open System.Threading
 open System.Threading.Tasks
 
 open Icfpc2023
@@ -207,9 +208,13 @@ let recalculateScoreCommand (problemId: int) =
 
 let recalculateScoreAllCommand () =
     let problems = Directory.GetFiles(problemsDir, "*.json")
-    for problem in problems do
+    let mutable finished = 0
+    Parallel.ForEach(problems, fun (problem: string) ->
         let problemId = Path.GetFileNameWithoutExtension problem |> int
         recalculateScoreCommand problemId
+        let res = Interlocked.Increment(&finished)
+        printfn $"Finished {res} / {problems.Length} problems"
+    ) |> ignore
 
 let convertIni problemFile =
     let problem = JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
