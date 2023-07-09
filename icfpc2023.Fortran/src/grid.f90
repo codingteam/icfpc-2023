@@ -12,6 +12,7 @@ module grid_mod
     procedure, pass(this) :: dealloc
     procedure, pass(this) :: exclude
     procedure, pass(grid) :: generate_grid
+    procedure, pass(grid) :: generate_radial_grid
   end type
 contains
   subroutine alloc(this, N)
@@ -105,4 +106,23 @@ contains
       end do
     end do
   end subroutine generate_grid
+  subroutine generate_radial_grid(grid, minx, maxx, miny, maxy, center, Nrad)
+    real(8), parameter :: radial(10) = 10._8 + (/ 0.0_8, 0.46_8, 0.97_8, 1.55_8, 2.22_8, 3.01_8, 3.98_8, 5.23_8, 6.99_8, 10.0_8 /)
+    real(8), parameter :: PI2 = 4.0_8*atan(1.0_8)*2._8
+    class(grid_t), intent(inout) :: grid
+    real(8), intent(in) :: minx, maxx, miny, maxy
+    type(Vec2D_t), intent(in) :: center
+    integer(8), intent(in) :: Nrad
+    integer(8) :: irad, iang, m
+    real(8) :: x, y
+    call grid%dealloc
+    m = 0
+    do irad = 1, size(radial)
+      do iang = 1, Nrad
+        x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
+        y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
+        print *, x, y
+      end do
+    end do
+  end subroutine generate_radial_grid
 end module grid_mod
