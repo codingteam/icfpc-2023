@@ -35,4 +35,10 @@ let PlaceMusician(state: State, musicianId: int, place: PointD): State =
         MusicianPlacements = new_musician_placements
     }
 
-let CalculateScore(state: State): Score = failwith "unimplemented"
+/// Checks if all musicians are far enough from stage edges and each other.
+let IsValid(state: State): bool = failwith "unimplemented"
+
+let CalculateScore(state: State): Score =
+    if not(IsValid state)
+    then 0.0
+    else failwith "unimplemented"
