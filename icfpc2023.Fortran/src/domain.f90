@@ -210,8 +210,11 @@ contains
     else
       Dmm = this%build_MM_distance_matrix()
       Dm = 1._8 + sum(Dmm, dim=1)
+      do i = 1, this%N_musicians
+        Dm(i) = Dm(i) * this%musicians(i)%volume
+      end do
       do i = 1, this%N_attendees
-        Tma(:,i) = Tma(:,i)
+        Tma(:,i) = Tma(:,i) * Dm
       end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
       energy = 0.0
