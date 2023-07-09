@@ -51,6 +51,12 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
         upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
         upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight - MusicianDeadZoneRadius
 
+    let step = 5.0
+    let stepSize = method.StepSize
+    for i = 0 to problem.Musicians.Length - 1 do
+        stepSize[i*2] <- step
+        stepSize[i*2 + 1] <- step
+
     let success = method.Maximize(initialGuess)
     printfn $"∇: Converged? {success}, status {method.Status}"
 
