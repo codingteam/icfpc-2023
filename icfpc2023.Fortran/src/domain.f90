@@ -53,6 +53,8 @@ module domain
     module procedure sound_transparency_pillars
   end interface
 
+  public :: sound_transparency
+
 contains
   subroutine room_load(this, filename)
     class(room_t), intent(inout) :: this
@@ -157,8 +159,8 @@ contains
     class(room_t), intent(in) :: this
     integer :: i, j
     real(8), allocatable :: Daa(:,:)
-    allocate(Daa(this%N_attendees, this%N_attendees))
-    do concurrent (i = 1:this%N_attendees, j = 1:this%N_attendees)
+    allocate(Daa(this%N_attendees, this%N_attendees), source = 0._8)
+    do concurrent (i = 1:this%N_attendees, j = 1:this%N_attendees, i /= j)
       Daa(j, i) = 1._8 / ((this%attendees(i)%pos%x - this%attendees(j)%pos%x) ** 2 + (this%attendees(i)%pos%y - this%attendees(j)%pos%y) ** 2)
     end do
   end function room_build_AA_invsquareddistance_matrix
