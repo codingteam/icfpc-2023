@@ -134,7 +134,7 @@ def mc_score(mus_instruments: np.ndarray,
                    use_playing_together_ext)
         scores.append(sc)
     scores = np.array(scores)
-    score_avg = scores.mean() - 1 * scores.std()
+    score_avg = scores.mean() - 0.0 * scores.std()
 
     return score_avg / mus_ratio / att_ratio
 

@@ -22,12 +22,13 @@ def ES_solve(stage: Stage,
              att_tastes: np.ndarray,
              pillar_center_radius: np.ndarray,
              use_playing_together_ext: bool = True) -> (np.ndarray, float, bool):
-    initial_sigmas = np.array([stage.w / 3 / 2, stage.h / 3 / 2, 5 / 3 / 2], dtype='float64')
+    initial_sigmas = np.array([stage.w / 3 , stage.h / 3 , 5 / 3 ], dtype='float64')
     step_count = 100
     population_size = 20
     score_k = 1
     mus_dist_penalty_k = -1e9
     mus_scene_penalty_k = -1e9
+    mutation_probability = 0.2
 
     n_musicians = mus_instruments.shape[0]
 
@@ -46,7 +47,9 @@ def ES_solve(stage: Stage,
 
     def gen_population(parent, sigmas) -> [np.ndarray]:
         def gen_one():
-            r = np.random.normal(0, sigmas, (n_musicians, 3)) + parent
+            shift = np.random.normal(0, sigmas, (n_musicians, 3))
+            mask = np.random.random((n_musicians, 3)) < mutation_probability
+            r = shift * mask + parent
             r[r[:, 2] > 10, 2] = 10
             r[r[:, 2] < 0, 2] = 0
             return r
