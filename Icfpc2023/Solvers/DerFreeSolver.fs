@@ -24,13 +24,13 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
         match initialSolution with
         | Some solution ->
             let initialScore = Scoring.CalculateScore problem solution
-            printfn $"λ: Initial score: {initialScore}"
+            printfn $"∇: Initial score: {initialScore}"
             solution.Placements |> pointsToArray
         | None ->
-            printfn $"λ: Computing initial solution (foxtranV1)..."
+            printfn $"∇: Computing initial solution (foxtranV1)..."
             let initialSolution = FoxtranSolver.FoxtranSolveV1(problem)
             let initialScore = Scoring.CalculateScore problem initialSolution
-            printfn $"λ: Initial score: {initialScore}"
+            printfn $"∇: Initial score: {initialScore}"
             initialSolution.Placements |> pointsToArray
 
     let objective = fun point ->
