@@ -119,7 +119,7 @@ let solveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) 
         let oldScore = oldSolutionMetadata.Score
         let oldSolver = oldSolutionMetadata.SolverName
         let diff = newScore - oldScore
-        let diff_percent = 100.0 * (diff / oldScore)
+        let diff_percent = 100.0 * (diff / abs(oldScore))
         printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({newSolver}) (%+f{diff} / %+.0f{diff_percent}%%)"
 
         if not preserveBest then
