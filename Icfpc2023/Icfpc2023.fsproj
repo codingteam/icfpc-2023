@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,6 +9,7 @@
     <Compile Include="Geometry.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="Scoring.fs" />
+    <Compile Include="IterativeScoring.fs" />
     <Compile Include="DirectoryLookup.fs" />
     <Compile Include="Converter.fs" />
     <Compile Include="Solvers\DummySolver.fs" />
