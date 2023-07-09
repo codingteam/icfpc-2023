@@ -91,17 +91,34 @@ type MusicianClosenessFactor =
 
     // TODO: implement getter/setter with indexing
 
+type MusicianAttendeeTotalImpact =
+    {
+        MusiciansCount: int
+        AttendeesCount: int
+        Impact: ImmutableArray<double>
+    }
+
+    static member zeroCreate(musiciansCount: int) (attendeesCount: int): MusicianAttendeeTotalImpact =
+        let elements_count = musiciansCount * attendeesCount
+        let impact = (Array.zeroCreate elements_count).ToImmutableArray()
+        {
+            MusiciansCount = musiciansCount
+            AttendeesCount = attendeesCount
+            Impact = impact
+        }
+
+    // TODO: implement getter/setter with indexing
+
 type State =
     {
         Problem: Problem
-        MusicianPlacements: ImmutableArray<PointD> // [0]
-        MusicianAttendeeDistance: MusicianAttendeeDistance // [1]
-        MusicianBlocksOtherForAttendee: MusicianBlocks // [6]
-        MusicianAttendeeImpact: MusicianAttendeeImpact // [2]
-        MusicianDistanceWithSameInstrument: MusicianDistanceWithSameInstrument // [3]
-        MusicianClosenessFactor: MusicianClosenessFactor // [4]
-
-        // TODO: add matrix of closeness*impact (for each attendee-musician pair) -- depends on 4 and 2. [5]
+        MusicianPlacements: ImmutableArray<PointD>
+        MusicianAttendeeDistance: MusicianAttendeeDistance
+        MusicianBlocksOtherForAttendee: MusicianBlocks
+        MusicianAttendeeImpact: MusicianAttendeeImpact
+        MusicianDistanceWithSameInstrument: MusicianDistanceWithSameInstrument
+        MusicianClosenessFactor: MusicianClosenessFactor
+        MusicianAttendeeTotalImpact: MusicianAttendeeTotalImpact
     }
 
     member private this.UpdateMusicianPlacement(musicianId: int, place: PointD): State =
@@ -128,6 +145,13 @@ type State =
         let state = this.UpdateMusicianDistanceToSameInstrument(musicianId)
         failwith "unimplemented"
 
+    member private this.UpdateMusicianAttendeeTotalImpact(musicianId: int): State =
+        let state =
+            this
+                .UpdateMusicianAttendeeImpact(musicianId)
+                .UpdateMusicianClosenessFactor(musicianId)
+        failwith "unimplemented"
+
     static member Create(problem: Problem, musician_placements: PointD[]): State =
         let musician_attendee_distance =
             let builder = ImmutableArray.CreateBuilder<ImmutableArray<double>>()
@@ -143,6 +167,7 @@ type State =
                 MusicianAttendeeImpact = MusicianAttendeeImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianDistanceWithSameInstrument = MusicianDistanceWithSameInstrument.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianClosenessFactor = MusicianClosenessFactor.Create problem.Musicians.Length
+                MusicianAttendeeTotalImpact = MusicianAttendeeTotalImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
             }
         Seq.indexed musician_placements
         |> Seq.fold (fun state (i, position) -> state.PlaceMusician(i, position)) initialState
@@ -151,9 +176,7 @@ type State =
     member this.PlaceMusician(musicianId: int, place: PointD): State =
         this
             .UpdateMusicianPlacement(musicianId, place)
-            .UpdateMusicianAttendeeImpact(musicianId)
-            .UpdateMusicianClosenessFactor(musicianId)
-        // TODO: signal to other fields that this musician moved so they can re-calculate stuff
+            .UpdateMusicianAttendeeTotalImpact(musicianId)
 
     /// Checks if all musicians are far enough from stage edges and each other.
     member this.IsValid: bool =
