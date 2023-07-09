@@ -120,10 +120,20 @@ let distance_point_line_deriv_line(line: double*double*double, linederiv: PointD
 // the idea is to replace step function with continuous function with some parameter for easier gradient-based optimization algorithms
 // lambda changes behavior of gate
 let lambda_factor_deriv_Mj(lambda: double, Ai: PointD, Mj: PointD, Mjt: PointD) =
+(*
   let line_Ai_Mj = line_parameter(Ai, Mj) // (a, b, c) typle
   let line_Ai_Mj_der = line_parameter_deriv(Ai, Mj) // (da, db, dc) typle
   let distance = distance_point_line(line_Ai_Mj, Mjt, Ai, Mj)
   let line_der = distance_point_line_deriv_line(line_Ai_Mj, line_Ai_Mj_der, Mjt, Ai, Mj)
+*)
+  let line_Ai_Mj    = line_parameter(Ai, Mj) // (a, b, c) typle
+  let line_Ai_Mj_dx = line_parameter(Ai, Mj + PointD(1e-6, 0)) // (a, b, c) typle
+  let line_Ai_Mj_dy = line_parameter(Ai, Mj + PointD(0, 1e-6)) // (a, b, c) typle
+  let distance    = distance_point_line(line_Ai_Mj,    Mjt, Ai, Mj)
+  let distance_dx = distance_point_line(line_Ai_Mj_dx, Mjt, Ai, Mj + PointD(1e-6, 0))
+  let distance_dy = distance_point_line(line_Ai_Mj_dy, Mjt, Ai, Mj + PointD(0, 1e-6))
+  let line_der = PointD(distance_dx - distance, distance_dy- distance) / 1e-6
+//  printfn $"{line_der.X} {line_der.Y}"
   line_der * 2. / Math.PI * lambda / (lambda * lambda * (distance - OVERLAP_DISTANCE)*(distance - OVERLAP_DISTANCE) + 1.0)
 
 // lambda score derivative between A_i and M_j over M_j
@@ -146,6 +156,7 @@ let lambda_derivative_AiMj_Mj(A: PointD[], M: PointD[], i, j, T: double[,], lamb
         if jt <> j || jt <> jtt then
           Pt <- Pt * lambda_factor(lambda, A[i], M[j], M[jt])
       res2 <- res2 + Pt
+// FIXME: NaN
   res2 <- res2 * (T[i,j] / A[i].SquaredDistanceTo(M[j]))
   res1 + res2
 
@@ -234,13 +245,12 @@ let lambda_score_MiMj(Mi: PointD, Mj: PointD, lambda: double) =
 // Mi - Musician, i-th
 // Mj - Musician, j-th
 // lambda - parameter; exact solution when -> infty
-let lambda_score_MiMj_deriv_Mi(Mi: PointD, Mj: PointD, lambda: double) =
+let lambda_score_MiMj_deriv_Mi(Mi: PointD, Mj: PointD) =
   let distance = Mi.DistanceTo(Mj)
   if distance > MUSICAL_MIN_DISTANCE then
     PointD(0.0, 0.0)
   else
-//    (- MUSICAL_MIN_DISTANCE / distance + 1.) * 1e6 * 1e3
-    (Mj - Mi) * 1e6 * 2. / Math.PI * 2. / (distance*distance) / (lambda*lambda * (distance - MUSICAL_MIN_DISTANCE)*(distance - MUSICAL_MIN_DISTANCE) + 1.0)
+    (Mj - Mi) * (- MUSICAL_MIN_DISTANCE / distance + 1.) * 1e3
 
 // #################################################
 //
@@ -253,8 +263,8 @@ let lambda_score_MiMj_deriv_Mi(Mi: PointD, Mj: PointD, lambda: double) =
 // Mi - Musician, i-th
 // Mj - Musician, j-th
 // lambda - parameter; exact solution when -> infty
-let lambda_score_MiMj_deriv_Mj(Mi: PointD, Mj: PointD, lambda: double) =
-  - lambda_score_MiMj_deriv_Mi(Mj, Mi, lambda)
+let lambda_score_MiMj_deriv_Mj(Mi: PointD, Mj: PointD) =
+  lambda_score_MiMj_deriv_Mi(Mj, Mi)
 
 // #################################################
 //
@@ -282,13 +292,13 @@ let lambda_score_Mi_borders(Mi: PointD, problem: Problem) =
 
 let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem) =
   if Mi.X < problem.StageBottomLeft.X + MUSICAL_MIN_DISTANCE then
-    PointD(- 1e3, 0)
-  else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE then
     PointD(1e3, 0)
+  else if Mi.X > problem.StageBottomLeft.X + problem.StageWidth - MUSICAL_MIN_DISTANCE then
+    PointD(- 1e3, 0)
   else if Mi.Y < problem.StageBottomLeft.Y + MUSICAL_MIN_DISTANCE then
-    PointD(0, - 1e3)
-  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageHeight - MUSICAL_MIN_DISTANCE then
     PointD(0, 1e3)
+  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageHeight - MUSICAL_MIN_DISTANCE then
+    PointD(0, - 1e3)
   else
     PointD(0, 0)
 
@@ -325,7 +335,8 @@ let lambda_deriv(M: PointD[], problem: Problem, lambda: double) =
         musicianDeriv[k] <- musicianDeriv[k] + ders[k]
   for i in Enumerable.Range(0, M.Length) do
     for j in Enumerable.Range(0, M.Length) do
-      musicianDeriv[j] <- musicianDeriv[j] + lambda_score_MiMj_deriv_Mj(M[i], M[j], lambda) * 0.5
+      if i <> j then
+        musicianDeriv[j] <- musicianDeriv[j] + lambda_score_MiMj_deriv_Mj(M[i], M[j]) * 0.5
   for i in Enumerable.Range(0, M.Length) do
     musicianDeriv[i] <- musicianDeriv[i] + lambda_score_Mi_border_deriv(M[i], problem)
   musicianDeriv
@@ -366,10 +377,15 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
             printfn $"λ: Initial score: {initialScore}"
             initialSolution.Placements |> pointsToArray
 
+(*
     let res = lambda_score(arrayToPoints initialGuess, problem, 1000)
+    let deriv = lambda_score_MiMj_deriv_Mj(PointD(8, 0), PointD(0, 0))
+    printfn $"{deriv.X} {deriv.Y}"
     printfn $"{res}"
-//    for point in lambda_deriv(arrayToPoints initialGuess, problem, 1000) do
-//      printfn $"{point.X} {point.Y}"
+    for point in lambda_deriv(arrayToPoints initialGuess, problem, 1000) do
+      printfn $"{point.X} {point.Y}"
+    failwith "Nothing."
+*)
 
     let mutable solution = initialGuess
     for lambda in lambdas do
@@ -377,7 +393,7 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
         let objective = fun point -> lambda_score(arrayToPoints point, problem, lambda)
         let gradient = fun point -> lambda_deriv(arrayToPoints point, problem, lambda) |> pointsToArray
 
-(*
+
         let method =
             NelderMead(
                 numberOfVariables = initialGuess.Length,
@@ -392,12 +408,14 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
         for i = 0 to problem.Musicians.Length - 1 do
             upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
             upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight - MusicianDeadZoneRadius
-*)
+
+(*
         let method =
             BroydenFletcherGoldfarbShanno(
                 numberOfVariables = initialGuess.Length,
                 ``function`` = objective,
                 gradient = gradient)
+*)
 
         let success = method.Maximize(solution)
         printfn $"λ: Converged? {success}, status {method.Status}"
