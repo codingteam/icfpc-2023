@@ -36,7 +36,7 @@ contains
       dist = P%DistanceTo(P_line)
     end if
     if (dist < 0) then
-      dist = min(P.DistantTo(this%P1), P.DistantTo(this%P2))
+      dist = min(P%DistanceTo(this%P1), P%DistanceTo(this%P2))
     end if
   end function line_distanceTo
 end module line_mod
