@@ -133,3 +133,53 @@ let ``IterativeScoring state is valid if all musicians are 10 or farther from ea
 
     let state = State.Create(problem, [| PointD(10.0, 10.0); PointD(20.0, 10.0); PointD(50.0, 70.0) |])
     Assert.True(state.IsValid)
+
+[<Fact>]
+let ``IteraticeScoring State.Create throws exception when the number of placements is less than the number of musicians``() =
+    let problem =
+        {
+            RoomWidth = 1_000.0
+            RoomHeight = 100.0
+            StageWidth = 60.0
+            StageHeight = 80.0
+            StageBottomLeft = PointD(0.0, 0.0)
+            Musicians = [| 1; 1; 1 |]
+            Attendees =
+                [|
+                    {
+                        X = 90.0
+                        Y = 90.0
+                        Tastes = [| 100.0 |]
+                    }
+                |]
+            Pillars = [||]
+        }
+
+    let too_few_placements = [| PointD(0.0, 0.0) |]
+    Assert.Throws<System.Exception>(fun () -> State.Create(problem, too_few_placements) :> obj)
+    |> ignore
+
+[<Fact>]
+let ``IteraticeScoring State.Create throws exception when the number of placements is more than the number of musicians``() =
+    let problem =
+        {
+            RoomWidth = 1_000.0
+            RoomHeight = 100.0
+            StageWidth = 60.0
+            StageHeight = 80.0
+            StageBottomLeft = PointD(0.0, 0.0)
+            Musicians = [| 1; 1; 1 |]
+            Attendees =
+                [|
+                    {
+                        X = 90.0
+                        Y = 90.0
+                        Tastes = [| 100.0 |]
+                    }
+                |]
+            Pillars = [||]
+        }
+
+    let too_many_placements = [| PointD(0.0, 0.0); PointD(10.0, 10.0); PointD(20.0, 20.0); PointD(30.0, 30.0) |]
+    Assert.Throws<System.Exception>(fun () -> State.Create(problem, too_many_placements) :> obj)
+    |> ignore

@@ -271,6 +271,10 @@ type State =
 
     /// Create initial state with given musician placements.
     static member Create(problem: Problem, musician_placements: PointD[]): State =
+        if problem.Musicians.Length <> musician_placements.Length
+        then failwith "The number of placements doesn't match the number of musicians"
+        else
+
         let musician_attendee_distance =
             let builder = ImmutableArray.CreateBuilder<ImmutableArray<double>>()
             for i in 0 .. musician_placements.Length-1 do
