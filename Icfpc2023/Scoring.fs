@@ -81,7 +81,16 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
         if problem.Pillars.Length > 0
         then CalculateClosenessFactors musicians
         else [| for i in 0 .. musicians.Length-1 -> 1.0 |]
-    problem.Attendees |> Array.sumBy(CalculateAttendeeScore problem.Pillars musicians closeness_factors)
+
+    let tooClose =
+        Seq.allPairs musicians musicians
+        |> Seq.filter (fun (m1, m2) -> m1 <> m2)
+        |> Seq.exists (fun (m1, m2) -> m1.Location.DistanceTo(m2.Location) < 10.0)
+
+    if tooClose
+    then -1000000000.0
+    else
+        problem.Attendees |> Array.sumBy(CalculateAttendeeScore problem.Pillars musicians closeness_factors)
 
 let CalculateNoBlockingScore(problem: Problem) (solution: IPartialSolution): Score =
     let musicians =

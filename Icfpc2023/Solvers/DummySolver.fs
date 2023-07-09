@@ -35,6 +35,7 @@ let SolveV1(problem: Problem): Solution =
     let grid = rectangularGrid(problem.StageWidth, problem.StageHeight, vacantRadius, problem.StageBottomLeft)
     {
         Placements = Seq.take problem.Musicians.Length grid |> Seq.toArray
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
     }
 
 // Puts musicians on a hexagonal grid, achieving the optimal packing:
@@ -44,6 +45,7 @@ let SolveV2(problem: Problem): Solution =
     let grid = hexagonalGrid(problem.StageWidth, problem.StageHeight, vacantRadius, problem.StageBottomLeft)
     {
         Placements = Seq.take problem.Musicians.Length grid |> Seq.toArray
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
     }
 
 /// Like SolveV1, but fills the rectangular grid randomly rather than
@@ -60,6 +62,7 @@ let RandomDummyV1(problem: Problem): Solution =
         |> Seq.toArray
     {
         Placements = placements
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
     }
 
 /// Like SolveV2, but fills the hexagonal grid randomly rather than
@@ -76,4 +79,5 @@ let RandomDummyV2(problem: Problem): Solution =
         |> Seq.toArray
     {
         Placements = placements
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
     }

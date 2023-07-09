@@ -113,6 +113,11 @@ Convert Problem+Solutions to INI:
 $ dotnet run --project Icfpc2023 -- convertini <all|problemId>
 ```
 
+Import solutions from INI:
+```console
+$ dotnet run --project Icfpc2023 -- vulpes all # no other options supported, sorry!
+```
+
 #### Legacy
 Download first 3 problems:
 
