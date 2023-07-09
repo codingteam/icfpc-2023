@@ -4,6 +4,8 @@ open System.Collections.Immutable
 
 type MusicianPlacements = ImmutableArray<PointD>
 
+type MusicianVolumes = ImmutableArray<double>
+
 type MusicianAttendeeDistance =
     {
         MusiciansCount: int
@@ -258,6 +260,7 @@ type State =
     {
         Problem: Problem
         MusicianPlacements: MusicianPlacements
+        MusicianVolumes: MusicianVolumes
         MusicianAttendeeDistance: MusicianAttendeeDistance
         MusicianBlocksOtherForAttendee: MusicianBlocks
         PillarBlocksSoundBetweenMusicianAndAttendee: PillarsBlocks
@@ -377,27 +380,28 @@ type State =
             { state with MusicianClosenessFactor = factors }
 
     member private this.UpdateMusicianAttendeeTotalImpact(musicianId: int): State =
-        let state =
-            this
-                .UpdateMusicianAttendeeImpact(musicianId)
-                .UpdateMusicianClosenessFactor(musicianId)
-
         seq {
-            for musicianId in 0 .. state.Problem.Musicians.Length-1 do
-                for attendeeId in 0 .. state.Problem.Attendees.Length-1 ->
+            for musicianId in 0 .. this.Problem.Musicians.Length-1 do
+                for attendeeId in 0 .. this.Problem.Attendees.Length-1 ->
                     (musicianId, attendeeId)
         }
         |> Seq.fold
             (fun state (musicianId, attendeeId) ->
                 let closeness = state.MusicianClosenessFactor.ClosenessFactor musicianId
+                let volume = state.MusicianVolumes.[musicianId]
                 let impact = state.MusicianAttendeeImpact.Impact musicianId attendeeId
-                let total_impact = ceil(closeness * impact)
+                let total_impact = ceil(volume * closeness * impact)
                 let updated_impacts = state.MusicianAttendeeTotalImpact.SetTotalImpact musicianId attendeeId total_impact
                 { state with MusicianAttendeeTotalImpact = updated_impacts })
-            state
+            this
+
+    /// Create initial state with given musician placements and with volumes set to 1.0.
+    static member Create(problem: Problem, musician_placements: PointD[]): State =
+        let musician_volumes = Array.create musician_placements.Length 1.0
+        State.Create(problem, musician_placements, musician_volumes)
 
     /// Create initial state with given musician placements.
-    static member Create(problem: Problem, musician_placements: PointD[]): State =
+    static member Create(problem: Problem, musician_placements: PointD[], musician_volumes: double[]): State =
         if problem.Musicians.Length <> musician_placements.Length
         then failwith "The number of placements doesn't match the number of musicians"
         else
@@ -411,6 +415,7 @@ type State =
             {
                 Problem = problem
                 MusicianPlacements = musician_placements.ToImmutableArray()
+                MusicianVolumes = musician_volumes.ToImmutableArray()
                 MusicianAttendeeDistance = MusicianAttendeeDistance.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianBlocksOtherForAttendee = MusicianBlocks.Create problem.Musicians.Length problem.Attendees.Length
                 PillarBlocksSoundBetweenMusicianAndAttendee = PillarsBlocks.Create problem.Musicians.Length problem.Attendees.Length problem.Pillars.Length
@@ -426,7 +431,16 @@ type State =
     member this.PlaceMusician(musicianId: int, place: PointD): State =
         this
             .UpdateMusicianPlacement(musicianId, place)
+            .UpdateMusicianAttendeeImpact(musicianId)
+            .UpdateMusicianClosenessFactor(musicianId)
             .UpdateMusicianAttendeeTotalImpact(musicianId)
+
+    member this.SetMusicianVolume (musicianId: int) (volume: double): State =
+        let state =
+            { this with
+                MusicianVolumes = this.MusicianVolumes.SetItem(musicianId, volume)
+            }
+        state.UpdateMusicianAttendeeTotalImpact(musicianId)
 
     /// Checks if all musicians are far enough from stage edges and each other.
     member this.IsValid: bool =
@@ -453,5 +467,5 @@ type State =
     member this.ToSolution: Solution =
         {
             Placements = Seq.toArray this.MusicianPlacements
-            Volumes = [||] // TODO: add support for volumes
+            Volumes = Seq.toArray this.MusicianVolumes
         }
