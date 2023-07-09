@@ -4,6 +4,9 @@ open Accord.Math.Optimization
 open System
 open System.Linq
 
+#nowarn "25"
+#nowarn "49"
+
 let OVERLAP_DISTANCE = 5.0
 let MUSICAL_MIN_DISTANCE = 10.0
 
@@ -324,41 +327,63 @@ let lambda_deriv(M: PointD[], problem: Problem, lambda: double) =
   musicianDeriv
 
 
-let lambdas = [0.01; 0.5; 1; 5; 10; 50; 100; 200; 500; 1000]
+let private lambdas = [0.01; 0.5; 1; 5; 10; 50; 100; 200; 500; 1000]
 
-let pointsToArray (points: PointD[]) =
+let private pointsToArray (points: PointD[]) =
     points
     |> Seq.map (fun p -> [| p.X; p.Y |])
     |> Seq.collect id
     |> Seq.toArray
 
-let arrayToPoints (array: double[]) =
+let private arrayToPoints (array: double[]) =
     array
     |> Seq.chunkBySize 2
     |> Seq.map (fun [| x; y |] -> PointD(x, y))
     |> Seq.toArray
 
-let Solve(problem: Problem): Solution =
-    let initialSolution = DummySolver.RandomDummyV1(problem)
-    let initialScore = Scoring.CalculateScore problem initialSolution
-    printfn $"Initial score: {initialScore}"
+let private MusicianDeadZoneRadius = 10.0
 
-    let initialGuess = initialSolution.Placements |> pointsToArray
+let Solve (initialSolution: Solution option) (problem: Problem): Solution =
+    let initialGuess =
+        match initialSolution with
+        | Some solution ->
+            let initialScore = Scoring.CalculateScore problem solution
+            printfn $"λ: Initial score: {initialScore}"
+            solution.Placements |> pointsToArray
+        | None ->
+            printfn $"λ: Computing initial solution (foxtranV1)..."
+            let initialSolution = FoxtranSolver.FoxtranSolveV1(problem)
+            let initialScore = Scoring.CalculateScore problem initialSolution
+            printfn $"λ: Initial score: {initialScore}"
+            initialSolution.Placements |> pointsToArray
 
     let mutable solution = initialGuess
     for lambda in lambdas do
-        printfn $"Current lambda parameter: {lambda}"
-        let f = fun point -> lambda_score(arrayToPoints point, problem, lambda)
-        let df = fun point -> lambda_deriv(arrayToPoints point, problem, lambda) |> pointsToArray
-        let method = BroydenFletcherGoldfarbShanno(initialGuess.Length, f, df)
-        method.MaxLineSearch <- 100
+        printfn $"λ: Current λ parameter: {lambda}"
+        let objective = fun point -> lambda_score(arrayToPoints point, problem, lambda)
+
+        let method =
+            NelderMead(
+                numberOfVariables = initialGuess.Length,
+                ``function`` = objective)
+
+        let lowerBounds = method.LowerBounds
+        for i = 0 to problem.Musicians.Length - 1 do
+            lowerBounds[i*2] <- problem.StageBottomLeft.X + MusicianDeadZoneRadius
+            lowerBounds[i*2 + 1] <- problem.StageBottomLeft.Y + MusicianDeadZoneRadius
+
+        let upperBounds = method.UpperBounds
+        for i = 0 to problem.Musicians.Length - 1 do
+            upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
+            upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight - MusicianDeadZoneRadius
+
         let success = method.Maximize(solution)
-        printfn $"Converged? {success}, status {method.Status}"
+        printfn $"λ: Converged? {success}, status {method.Status}"
 
         solution <- method.Solution
-        printfn $"Objective value: {method.Value}"
+        printfn $"λ: Objective value: {method.Value}"
 
         let score = Scoring.CalculateScore problem { Placements = solution |> arrayToPoints }
-        printfn $"Current score: {score}"
+        printfn $"λ: Current score: {score}"
 
     { Placements = solution |> arrayToPoints }

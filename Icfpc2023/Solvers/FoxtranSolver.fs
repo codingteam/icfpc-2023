@@ -110,6 +110,12 @@ let private PlaceMusicianAndDestroyPosition problem
     let struct(x, y) = position
     for grid in gridsPerInstrument do
         grid[x, y] <- Double.MinValue
+// FIXME: remove grid point for grids where shift lower MusicianDeadZoneRadius
+//        for cellX in 0 .. grid.length1 - 1 do
+//            for cellY in 0 .. grid.length2 - 1 do
+//                let cellPosition = GridCoordToPhysicalCoord problem (cellX, cellY)
+//                if cellPosition.SquaredDistanceTo(position) < MusicianDeadZoneRadius * MusicianDeadZoneRadius then
+//                    grid[cellX, cellY] <- Double.MinValue
 
 
     match shadowMatrix with

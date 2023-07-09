@@ -35,25 +35,48 @@ let readToken() =
         failwith $"Please save the access token to file \"{tokenFile}\"."
     File.ReadAllText(tokenFile).Trim()
 
-let nondeterministic_solvers = Map [
+let nondeterministicSolvers = Map [
     "randomDummyV1", DummySolver.RandomDummyV1
     "randomDummyV2", DummySolver.RandomDummyV2
+]
+
+let experimentalSolvers = Map [
+    "lambda", LambdaSolver.Solve None
+    "derfree", DerFreeSolver.Solve None
+]
+
+let improvementSolvers = Map [
+    "lambda", LambdaSolver.Solve
+    "derfree", DerFreeSolver.Solve
 ]
 
 let solvers = Map(Seq.concat [
         seq {
             "dummyV1", DummySolver.SolveV1
             "dummyV2", DummySolver.SolveV2
-            // "lambda", LambdaSolver.Solve
             "foxtranV1", FoxtranSolver.FoxtranSolveV1
             "foxtranV2", FoxtranSolver.FoxtranSolveV2
         };
-        Map.toSeq nondeterministic_solvers
+        Map.toSeq nondeterministicSolvers
     ])
+
+let inline (.+) (xs: 'T[]) (ys: 'T[]) =
+    (xs, ys) ||> Array.map2 (fun x y -> x + y)
+
+let postProcessProblem (problem: Problem) =
+    let processedAttendees =
+        problem.Attendees
+        |> Seq.groupBy (fun attendee -> attendee.X, attendee.Y)
+        |> Seq.map (fun (pos, attendees) -> pos, attendees |> Seq.map (fun a -> a.Tastes))
+        |> Seq.map (fun (pos, tastesSeq) -> pos, tastesSeq |> Seq.reduce (.+))
+        |> Seq.map (fun ((x, y), tastes) -> { X = x; Y = y; Tastes = tastes })
+        |> Seq.toArray
+
+    { problem with Attendees = processedAttendees }
 
 let readProblem (problemId: int) =
     let problemFile = Path.Combine(problemsDir, $"{problemId}.json")
-    JsonDefs.ReadProblemFromFile problemFile
+    JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
 
 let tryReadSolution (problemId: int): (Solution * SolutionMetadata) option =
     let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
@@ -75,9 +98,13 @@ let writeSolution (problemId: int) solution solutionMetadata =
 
 let solve (problemId: int) (solverName: SolverName) =
     let solveWithSolver (problemId: int) (solverName: SolverName) =
-        printf $"Trying to solve problem {problemId} with solver {solverName}... "
+        printfn $"Trying to solve problem {problemId} with solver {solverName}..."
         let problem = readProblem problemId
-        let solver = solvers[solverName]
+        let solver =
+            solvers
+            |> Map.tryFind solverName
+            |> Option.orElseWith (fun () -> experimentalSolvers |> Map.tryFind solverName)
+            |> Option.get // TODO: unsafe. gsomix
         let solution = solver problem
         let score = Scoring.CalculateScore problem solution
         printfn $"On problem {problemId}, solver {solverName} yielded a score of {score}"
@@ -94,7 +121,7 @@ let solve (problemId: int) (solverName: SolverName) =
         |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
         |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)
     | "best-nondeterministic" ->
-        nondeterministic_solvers
+        nondeterministicSolvers
         |> Map.toSeq
         |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
         |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)
@@ -112,7 +139,7 @@ let solveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) 
         let oldScore = oldSolutionMetadata.Score
         let oldSolver = oldSolutionMetadata.SolverName
         let diff = newScore - oldScore
-        let diff_percent = 100.0 * (diff / oldScore)
+        let diff_percent = 100.0 * (diff / abs(oldScore))
         printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({newSolver}) (%+f{diff} / %+.0f{diff_percent}%%)"
 
         if not preserveBest then
@@ -129,6 +156,45 @@ let solveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) 
         printfn $"Writing solution for problem {problemId}..."
         writeSolution problemId solution solutionMetadata
 
+let improveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) =
+    let improveWithSolver (problemId: int) (solverName: SolverName) (initialSolution: Solution) =
+        printfn $"Trying to improve problem {problemId} with solver {solverName}..."
+        let problem = readProblem problemId
+        let solver = improvementSolvers[solverName]
+        let solution = solver (Some initialSolution) problem
+        let score = Scoring.CalculateScore problem solution
+        printfn $"On problem {problemId}, solver {solverName} yielded a score of {score}"
+        let solutionMetadata = {
+            Score = score
+            SolverName = solverName
+        }
+        solution, solutionMetadata
+
+    printfn $"Improving problem {problemId}..."
+    match tryReadSolution problemId with
+    | Some (oldSolution, oldSolutionMetadata) ->
+        let newSolution, newSolutionMetadata = improveWithSolver problemId solverName oldSolution
+        let newSolver = newSolutionMetadata.SolverName
+
+        let newScore = newSolutionMetadata.Score
+        let oldScore = oldSolutionMetadata.Score
+        let oldSolver = oldSolutionMetadata.SolverName
+        let diff = newScore - oldScore
+        let diff_percent = 100.0 * (diff / abs(oldScore))
+        printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({newSolver}) (%+f{diff} / %+.0f{diff_percent}%%)"
+
+        if not preserveBest then
+            printfn $"Writing solution for problem {problemId}..."
+            writeSolution problemId newSolution newSolutionMetadata
+        elif preserveBest && (newScore > oldScore) then
+            printfn $"Writing best solution for problem {problemId}..."
+            writeSolution problemId newSolution newSolutionMetadata
+        else
+            printfn $"Do nothing!"
+
+    | None ->
+        printfn $"No solution found. There is nothing to improve!"
+
 let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
     let problems = Directory.GetFiles(problemsDir, "*.json")
     for problem in problems do
@@ -136,7 +202,7 @@ let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
         solveCommand problemId solverName preserveBest
 
 let convertIni problemFile =
-    let problem = JsonDefs.ReadProblemFromFile problemFile
+    let problem = JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
     let problemId = int <| Path.GetFileNameWithoutExtension problemFile
     let solution =
         tryReadSolution problemId
@@ -182,6 +248,12 @@ let main(args: string[]): int =
 
     | [| "solve"; "all"; solverName; "--preserve-best" |] ->
         solveAllCommand solverName true
+
+    | [| "improve"; Parse(problemId); solverName |] ->
+        improveCommand problemId solverName false
+
+    | [| "improve"; Parse(problemId); solverName; "--preserve-best" |] ->
+        improveCommand problemId solverName true
 
     | [| "score"; Parse(problemId) |] ->
         match tryReadSolution problemId with

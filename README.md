@@ -91,6 +91,17 @@ Calculate score for solution 1 on problem 1:
 $ dotnet run --project Icfpc2023 -- score 1
 ```
 
+#### Solution improvement
+Improve existing solution of problem 1 using lambda solver:
+```console
+$ dotnet run --project Icfpc2023 -- improve 1 lambda
+```
+
+Improve existing solution of problem 1 using lambda solver, but preserve best solution:
+```console
+$ dotnet run --project Icfpc2023 -- improve 1 lambda --preserve-best
+```
+
 #### Oddities
 Lambda score showcase (I dunno, see [PR #4](https://github.com/codingteam/icfpc-2023/pull/4/) for details):
 ```console

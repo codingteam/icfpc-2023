@@ -41,15 +41,19 @@ module domain
     procedure, pass(this) :: score => room_score
     procedure, pass(this) :: error => room_error
     procedure, pass(this) :: build_taste_matrix => room_build_taste_matrix
-    procedure, pass(this) :: build_MA_distance_matrix => room_build_MA_distance_matrix
+    procedure, pass(this) :: build_AA_invsquareddistance_matrix => room_build_AA_invsquareddistance_matrix
+    procedure, pass(this) :: build_MA_invsquareddistance_matrix => room_build_MA_invsquareddistance_matrix
     procedure, pass(this) :: build_MM_distance_matrix => room_build_MM_distance_matrix
     procedure, pass(this) :: build_block_matrix => room_build_block_matrix
   end type
 
   interface sound_transparency
+    module procedure sound_transparency_attendees
     module procedure sound_transparency_musicians
     module procedure sound_transparency_pillars
   end interface
+
+  public :: sound_transparency
 
 contains
   subroutine room_load(this, filename)
@@ -151,7 +155,17 @@ contains
     end do
   end function room_build_taste_matrix
 
-  function room_build_MA_distance_matrix(this) result(Dma)
+  function room_build_AA_invsquareddistance_matrix(this) result(Daa)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Daa(:,:)
+    allocate(Daa(this%N_attendees, this%N_attendees), source = 0._8)
+    do concurrent (i = 1:this%N_attendees, j = 1:this%N_attendees, i /= j)
+      Daa(j, i) = 1._8 / ((this%attendees(i)%pos%x - this%attendees(j)%pos%x) ** 2 + (this%attendees(i)%pos%y - this%attendees(j)%pos%y) ** 2)
+    end do
+  end function room_build_AA_invsquareddistance_matrix
+
+  function room_build_MA_invsquareddistance_matrix(this) result(Dma)
     class(room_t), intent(in) :: this
     integer :: i, j
     real(8), allocatable :: Dma(:,:)
@@ -159,7 +173,7 @@ contains
     do concurrent (i = 1:this%N_attendees, j = 1:this%N_musicians)
       Dma(j, i) = 1._8 / ((this%attendees(i)%pos%x - this%musicians(j)%pos%x) ** 2 + (this%attendees(i)%pos%y - this%musicians(j)%pos%y) ** 2)
     end do
-  end function room_build_MA_distance_matrix
+  end function room_build_MA_invsquareddistance_matrix
 
   function room_build_MM_distance_matrix(this) result(Dmm)
     class(room_t), intent(in) :: this
@@ -188,7 +202,7 @@ contains
     integer :: i, j
     real(8), allocatable :: Tma(:,:), Dma(:,:), Bma(:,:), Dmm(:,:), Dm(:)
     Tma = this%build_taste_matrix()
-    Dma = this%build_MA_distance_matrix()
+    Dma = this%build_MA_invsquareddistance_matrix()
     Bma = this%build_block_matrix()
     if (this%version == 1) then
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
@@ -224,7 +238,6 @@ contains
         end if
       end do
       if (this%musicians(i)%pos%x + 1e-5_8 < this%stage_bottom_left%x + MINIMAL_MUSICIAN_DISTANCE) then
-        print *, this%musicians(i)%pos%x + 1e-10_8, this%stage_bottom_left%x + MINIMAL_MUSICIAN_DISTANCE
         energy = - 1e8_8
         return
       else if (this%musicians(i)%pos%y + 1e-10_8 < this%stage_bottom_left%y + MINIMAL_MUSICIAN_DISTANCE) then
@@ -281,4 +294,22 @@ contains
       end if
     end do
   end function sound_transparency_pillars
+
+  pure real(8) function sound_transparency_attendees(attendee1, attendee2, pillars) result (factor)
+    type(attendee_t), intent(in) :: attendee1, attendee2
+    type(pillar_t), intent(in), allocatable :: pillars(:)
+    type(line_t) :: line
+    integer :: i
+    factor = 1._8
+    if (.not.allocated(pillars)) then
+      return
+    endif
+    call line%new(attendee1%pos, attendee2%pos)
+    do i = 1, size(pillars)
+      if (line%distanceTo(pillars(i)%pos) < pillars(i)%radius) then
+        factor = 0._8
+        exit
+      end if
+    end do
+  end function sound_transparency_attendees
 end module domain

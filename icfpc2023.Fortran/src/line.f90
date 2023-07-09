@@ -25,15 +25,18 @@ contains
     P_line = Vec2D_t((this%b*( this%b*P%X - this%a*P%Y) - this%a*this%c) / (this%a*this%a + this%b*this%b), &
                      (this%a*(-this%b*P%X + this%a*P%Y) - this%b*this%c) / (this%a*this%a + this%b*this%b))
     if (this%P1%x > P%X .and. this%P2%x > P%X) then
-      dist = 1e6_8
+      dist = -1._8
     else if (this%P1%x < P%X .and. this%P2%x < P%X) then
-      dist = 1e6_8
+      dist = -1._8
     else if (this%P1%y > P%Y .and. this%P2%y > P%Y) then
-      dist = 1e6_8
+      dist = -1._8
     else if (this%P1%y < P%Y .and. this%P2%y < P%Y) then
-      dist = 1e6_8
+      dist = -1._8
     else
       dist = P%DistanceTo(P_line)
+    end if
+    if (dist < 0) then
+      dist = min(P%DistanceTo(this%P1), P%DistanceTo(this%P2))
     end if
   end function line_distanceTo
 end module line_mod
