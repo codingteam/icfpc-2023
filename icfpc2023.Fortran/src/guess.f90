@@ -83,6 +83,7 @@ contains
       room%musicians(i)%pos%x = -2000
       order(i) = room%musicians(i)%instrument
     end do
+    musician%volume = 1._8
     do instr = 1, room%N_instruments
       musician%instrument = instr
       do i = 1, size(grid(instr)%skip)
@@ -96,6 +97,11 @@ contains
       max_pos = maxloc(grid(layer)%value)
       room%musicians(t)%instrument = order(t)
       room%musicians(t)%pos = grid(layer)%pos(max_pos(1))
+      if (grid(layer)%value(max_pos(1)) < 0._8) then
+        room%musicians(t)%volume = 0._8
+      else
+        room%musicians(t)%volume = 10._8
+      end if
       do instr = 1, room%N_instruments
         call grid(instr)%exclude(grid(layer)%pos(max_pos(1)), -1e9_8)
       end do

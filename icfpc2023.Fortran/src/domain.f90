@@ -209,6 +209,9 @@ contains
     Dma = this%build_MA_invsquareddistance_matrix()
     Bma = this%build_block_matrix()
     if (this%version == 1) then
+      do i = 1, this%N_musicians
+        Tma(i,:) = Tma(i,:) * this%musicians(i)%volume
+      end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     else
       Dmm = this%build_MM_distance_matrix()
