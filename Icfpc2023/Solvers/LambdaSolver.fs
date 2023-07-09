@@ -63,7 +63,9 @@ let distance_point_line(line: double*double*double, P: PointD, B1: PointD, B2: P
 // lambda changes behavior of gate
 let lambda_factor(lambda: double, Ai: PointD, Mj: PointD, Mjt: PointD) =
   let line_Ai_Mj = line_parameter(Ai, Mj) // (a, b, c) typle
-  2. / Math.PI * atan(lambda*(distance_point_line(line_Ai_Mj, Mjt, Ai, Mj) - OVERLAP_DISTANCE)) + 1.0
+  let distance = distance_point_line(line_Ai_Mj, Mjt, Ai, Mj)
+  let tmp = (2. / Math.PI * atan(lambda*(distance - OVERLAP_DISTANCE)) + 1.0) / 2.
+  tmp
 
 // lambda score between A_i and M_j
 //
@@ -76,7 +78,7 @@ let lambda_score_AiMj(A: PointD[], M: PointD[], i, j, T: double[,], lambda: doub
   for jt in Enumerable.Range(0, M.Length) do
     if jt <> j then
       res <- res * lambda_factor(lambda, A[i], M[j], M[jt])
-  res
+  res * 1e6
 
 // #################################################
 //
@@ -216,10 +218,10 @@ let lambda_derivative_AiMj_Mjt(A: PointD[], M: PointD[], i, j, T: double[,], lam
 // lambda - parameter; exact solution when -> infty
 let lambda_score_MiMj(Mi: PointD, Mj: PointD, lambda: double) =
   let distance = Mi.DistanceTo(Mj)
-  if distance > MUSICAL_MIN_DISTANCE then
-    0.0
+  if distance < MUSICAL_MIN_DISTANCE then
+    -(- 2. / Math.PI * atan(lambda * (distance - MUSICAL_MIN_DISTANCE)) + 1.0) / 2. * 1e6 * 1e3
   else
-    - (2. / Math.PI * atan(lambda * (distance - MUSICAL_MIN_DISTANCE)) + 1.0) * 1e6 * 1e3
+    0.0
 
 // #################################################
 //
@@ -237,6 +239,7 @@ let lambda_score_MiMj_deriv_Mi(Mi: PointD, Mj: PointD, lambda: double) =
   if distance > MUSICAL_MIN_DISTANCE then
     PointD(0.0, 0.0)
   else
+//    (- MUSICAL_MIN_DISTANCE / distance + 1.) * 1e6 * 1e3
     (Mj - Mi) * 1e6 * 2. / Math.PI * 2. / (distance*distance) / (lambda*lambda * (distance - MUSICAL_MIN_DISTANCE)*(distance - MUSICAL_MIN_DISTANCE) + 1.0)
 
 // #################################################
@@ -266,7 +269,7 @@ let lambda_score_Mi_borders(Mi: PointD, problem: Problem) =
     - 1e6 * 1e3
   else if Mi.Y < problem.StageBottomLeft.Y + MUSICAL_MIN_DISTANCE then
     - 1e6 * 1e3
-  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageWidth - MUSICAL_MIN_DISTANCE then
+  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageHeight - MUSICAL_MIN_DISTANCE then
     - 1e6 * 1e3
   else
     0.0
@@ -284,7 +287,7 @@ let lambda_score_Mi_border_deriv(Mi: PointD, problem: Problem) =
     PointD(1e3, 0)
   else if Mi.Y < problem.StageBottomLeft.Y + MUSICAL_MIN_DISTANCE then
     PointD(0, - 1e3)
-  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageWidth - MUSICAL_MIN_DISTANCE then
+  else if Mi.Y > problem.StageBottomLeft.Y + problem.StageHeight - MUSICAL_MIN_DISTANCE then
     PointD(0, 1e3)
   else
     PointD(0, 0)
@@ -304,7 +307,8 @@ let lambda_score(M: PointD[], problem: Problem, lambda: double) =
       res <- res + lambda_score_AiMj(A, M, i, j, T, lambda)
   for i in Enumerable.Range(0, M.Length) do
     for j in Enumerable.Range(0, M.Length) do
-      res <- res + lambda_score_MiMj(M[i], M[j], lambda)
+      if i <> j then
+        res <- res + lambda_score_MiMj(M[i], M[j], lambda)
   for i in Enumerable.Range(0, M.Length) do
     res <- res + lambda_score_Mi_borders(M[i], problem)
   res
@@ -326,8 +330,13 @@ let lambda_deriv(M: PointD[], problem: Problem, lambda: double) =
     musicianDeriv[i] <- musicianDeriv[i] + lambda_score_Mi_border_deriv(M[i], problem)
   musicianDeriv
 
+// #################################################
+//
+// Solver
+//
+// #################################################
 
-let private lambdas = [0.01; 0.5; 1; 5; 10; 50; 100; 200; 500; 1000]
+let private lambdas = [0.01; 0.5; 1; 5; 10; 50; 100; 200; 500; 1000; 5000; 30000]
 
 let private pointsToArray (points: PointD[]) =
     points
@@ -356,8 +365,11 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
             let initialScore = Scoring.CalculateScore problem initialSolution
             printfn $"λ: Initial score: {initialScore}"
             initialSolution.Placements |> pointsToArray
-    for point in lambda_deriv(initialSolution.Placements, problem, 0.04) do
-      printfn $"{point.X} {point.Y}"
+
+    let res = lambda_score(arrayToPoints initialGuess, problem, 1000)
+    printfn $"{res}"
+//    for point in lambda_deriv(arrayToPoints initialGuess, problem, 1000) do
+//      printfn $"{point.X} {point.Y}"
 
     let mutable solution = initialGuess
     for lambda in lambdas do
