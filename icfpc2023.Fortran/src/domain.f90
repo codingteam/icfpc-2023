@@ -224,7 +224,6 @@ contains
         end if
       end do
       if (this%musicians(i)%pos%x + 1e-5_8 < this%stage_bottom_left%x + MINIMAL_MUSICIAN_DISTANCE) then
-        print *, this%musicians(i)%pos%x + 1e-10_8, this%stage_bottom_left%x + MINIMAL_MUSICIAN_DISTANCE
         energy = - 1e8_8
         return
       else if (this%musicians(i)%pos%y + 1e-10_8 < this%stage_bottom_left%y + MINIMAL_MUSICIAN_DISTANCE) then
