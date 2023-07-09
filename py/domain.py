@@ -12,18 +12,6 @@ class Stage:
 
 
 @dataclass
-class Problem:
-    room_width: float
-    room_height: float
-    stage_width: float
-    stage_height: float
-    stage_bottom_left: [float, float]
-    musicians: [Musician]
-    attendees: [Attendee]
-    pillars: [Pillar]
-
-
-@dataclass
 class ProblemData:
     room_w: float
     room_h: float
