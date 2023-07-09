@@ -62,7 +62,7 @@ contains
   subroutine guess_v2(room)
     use grid_mod
     type(room_t), intent(inout) :: room
-    integer :: t, i, j, instr, layer
+    integer :: t, tt, i, j, instr, layer
     type(musician_t) :: musician
     integer(8), allocatable :: order(:)
     integer(8) :: max_pos(1)
@@ -113,6 +113,8 @@ contains
       call additional%dealloc
     end do
     do t = 1, room%N_musicians
+      write(6, "(A,I0,A,I0,A)", advance="no") "Musician ", t, " of ", room%N_musicians, repeat(" ", 20) // char(13)
+      flush(6)
       layer = order(t)
       max_pos = maxloc(grid(layer)%value)
       room%musicians(t)%instrument = order(t)
@@ -124,6 +126,19 @@ contains
       end if
       do instr = 1, room%N_instruments
         call grid(instr)%exclude(grid(layer)%pos(max_pos(1)), -1e9_8)
+      end do
+      do tt = t + 1, room%N_musicians
+        if (order(tt) == layer) then
+          call additional%generate_radial_grid(minx, maxx, miny, maxy, room%musicians(t)%pos, 12_8)
+          do i = 1, size(additional%skip)
+            musician%pos = additional%pos(i)
+            room%musicians(t + 1) = musician
+            additional%value(i) = room%score()
+          end do
+          call grid(layer)%merge(additional)
+          call additional%dealloc
+          exit
+        end if
       end do
     end do
   end subroutine guess_v2
