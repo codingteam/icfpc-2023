@@ -31,11 +31,17 @@ type IPartialSolution =
     abstract member GetPlacedMusicians: allMusicians: int[] -> seq<PointD * int>
 
 type Solution =
-    { Placements: PointD[] }
+    {
+        Placements: PointD[]
+        Volumes: double[]
+    }
     interface IPartialSolution with
         member this.GetPlacedMusicians allMusicians =
             allMusicians
             |> Seq.zip this.Placements
+
+module Solution =
+    let defaultVolumes numOfMusicians = Array.replicate numOfMusicians 1.0
 
 type Score = double
 type SolverName = string

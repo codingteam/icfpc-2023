@@ -304,6 +304,16 @@ let main(args: string[]): int =
             printfn $"Trying to store solution for {problemId}…"
             StoreReceivedSolution problemId solution metadata true
 
+    | [| "volumeUp" |] ->
+        let solutions = Directory.GetFiles(solutionsDir, "*.json")
+        for solution in solutions do
+            if not(solution.EndsWith(".meta.json")) then
+                let problemId = Path.GetFileNameWithoutExtension solution |> int
+                let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
+                let solution = JsonDefs.ReadSolutionLegacyFromFile solutionFile
+                let solutionText = JsonDefs.WriteSolutionToJson solution
+                File.WriteAllText(solutionFile, solutionText)
+
     | _ -> printfn "Command unrecognized."
 
     0

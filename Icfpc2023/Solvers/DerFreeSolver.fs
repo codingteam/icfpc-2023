@@ -34,7 +34,10 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
             initialSolution.Placements |> pointsToArray
 
     let objective = fun point ->
-        Scoring.CalculateScore problem { Placements = point |> arrayToPoints }
+        Scoring.CalculateScore problem {
+            Placements = point |> arrayToPoints
+            Volumes = Solution.defaultVolumes problem.Musicians.Length
+        }
 
     let method =
         NelderMead(
@@ -61,10 +64,16 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
     printfn $"∇: Converged? {success}, status {method.Status}"
 
     let solution = method.Solution
-    let score = Scoring.CalculateScore problem { Placements = solution |> arrayToPoints }
+    let score = Scoring.CalculateScore problem {
+        Placements = solution |> arrayToPoints
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }
     printfn $"∇: Current score: {score}"
 
-    { Placements = solution |> arrayToPoints }
+    {
+        Placements = solution |> arrayToPoints
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }
 
 let private pointsToXs (points: PointD[]) =
     points
@@ -91,7 +100,10 @@ let SolveHorizontal (initialSolution: Solution option) (problem: Problem): Solut
             initialSolution.Placements |> pointsToXs
 
     let objective = fun point ->
-        Scoring.CalculateScore problem { Placements = point |> xsToPoints }
+        Scoring.CalculateScore problem {
+            Placements = point |> xsToPoints
+            Volumes = Solution.defaultVolumes problem.Musicians.Length
+        }
 
     let method =
         NelderMead(
@@ -115,7 +127,13 @@ let SolveHorizontal (initialSolution: Solution option) (problem: Problem): Solut
     printfn $"∇: Converged? {success}, status {method.Status}"
 
     let solution = method.Solution
-    let score = Scoring.CalculateScore problem { Placements = solution |> xsToPoints }
+    let score = Scoring.CalculateScore problem {
+        Placements = solution |> xsToPoints
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }
     printfn $"∇: Current score: {score}"
 
-    { Placements = solution |> xsToPoints }
+    {
+        Placements = solution |> xsToPoints
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }
