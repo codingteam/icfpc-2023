@@ -72,6 +72,21 @@ let private CalculateClosenessFactors (musicians: Musician[]): ClosenessFactor[]
     } |> Seq.toArray
 
 let CalculateScore(problem: Problem) (solution: Solution): Score =
+    let BadScore = -1000000000.0
+    let SafeDistanceToEdge = 10.0
+
+    let area_for_musicians: Rectangle =
+        {
+            BottomLeft = problem.StageBottomLeft + PointD(SafeDistanceToEdge, SafeDistanceToEdge)
+            Width = problem.StageWidth - 2.0*SafeDistanceToEdge
+            Height = problem.StageHeight - 2.0*SafeDistanceToEdge
+        }
+    let musicians_are_safely_on_stage =
+        solution.Placements |> Seq.forall (fun (p) -> area_for_musicians.Contains(p))
+    if not musicians_are_safely_on_stage
+    then BadScore
+    else
+
     let musicians =
         problem.Musicians
         |> Seq.zip solution.Placements
@@ -88,7 +103,7 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
         |> Seq.exists (fun (m1, m2) -> m1.Location.DistanceTo(m2.Location) < 10.0)
 
     if tooClose
-    then -1000000000.0
+    then BadScore
     else
         problem.Attendees |> Array.sumBy(CalculateAttendeeScore problem.Pillars musicians closeness_factors)
 

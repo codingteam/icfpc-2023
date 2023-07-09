@@ -32,6 +32,21 @@ type Line =
         abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt((x2 - x1) ** 2.0 + (y2 - y1) ** 2)
 
 [<Struct>]
+type Rectangle =
+    {
+        BottomLeft: PointD
+        Height: double
+        Width: double
+    }
+    member private this.UpperRight: PointD =
+        this.BottomLeft + PointD(this.Width, this.Height)
+    member this.Contains(p: PointD): bool =
+        let (PointD(x, y)) = p
+        let (PointD(x0, y0)) = this.BottomLeft
+        let (PointD(x1, y1)) = this.UpperRight
+        (x >= x0 && x <= x1) && (y >= y0 && y <= y1)
+
+[<Struct>]
 type Stadium =
     {
         Center1: PointD
