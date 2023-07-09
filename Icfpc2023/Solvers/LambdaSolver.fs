@@ -356,6 +356,8 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
             let initialScore = Scoring.CalculateScore problem initialSolution
             printfn $"λ: Initial score: {initialScore}"
             initialSolution.Placements |> pointsToArray
+    for point in lambda_deriv(initialSolution.Placements, problem, 0.04) do
+      printfn $"{point.X} {point.Y}"
 
     let mutable solution = initialGuess
     for lambda in lambdas do
