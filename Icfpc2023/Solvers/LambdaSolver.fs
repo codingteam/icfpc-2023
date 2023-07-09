@@ -339,26 +339,40 @@ let arrayToPoints (array: double[]) =
     |> Seq.toArray
 
 let Solve(problem: Problem): Solution =
-    let initialSolution = DummySolver.RandomDummyV1(problem)
+    printfn $"λ: Computing initial solution..."
+    let initialSolution = FoxtranSolver.FoxtranSolveV1(problem)
     let initialScore = Scoring.CalculateScore problem initialSolution
-    printfn $"Initial score: {initialScore}"
+    printfn $"λ: Initial score: {initialScore}"
 
     let initialGuess = initialSolution.Placements |> pointsToArray
 
     let mutable solution = initialGuess
     for lambda in lambdas do
-        printfn $"Current lambda parameter: {lambda}"
-        let f = fun point -> lambda_score(arrayToPoints point, problem, lambda)
-        let df = fun point -> lambda_deriv(arrayToPoints point, problem, lambda) |> pointsToArray
-        let method = BroydenFletcherGoldfarbShanno(initialGuess.Length, f, df)
-        method.MaxLineSearch <- 100
+        printfn $"λ: Current λ parameter: {lambda}"
+        let objective = fun point -> lambda_score(arrayToPoints point, problem, lambda)
+
+        let method =
+            NelderMead(
+                numberOfVariables = initialGuess.Length,
+                ``function`` = objective)
+
+        let lowerBounds = method.LowerBounds
+        for i = 0 to initialSolution.Placements.Length - 1 do
+            lowerBounds[i*2] <- problem.StageBottomLeft.X
+            lowerBounds[i*2 + 1] <- problem.StageBottomLeft.Y
+
+        let upperBounds = method.UpperBounds
+        for i = 0 to initialSolution.Placements.Length - 1 do
+            upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth
+            upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight
+
         let success = method.Maximize(solution)
-        printfn $"Converged? {success}, status {method.Status}"
+        printfn $"λ: Converged? {success}, status {method.Status}"
 
         solution <- method.Solution
-        printfn $"Objective value: {method.Value}"
+        printfn $"λ: Objective value: {method.Value}"
 
         let score = Scoring.CalculateScore problem { Placements = solution |> arrayToPoints }
-        printfn $"Current score: {score}"
+        printfn $"λ: Current score: {score}"
 
     { Placements = solution |> arrayToPoints }

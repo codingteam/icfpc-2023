@@ -35,20 +35,23 @@ let readToken() =
         failwith $"Please save the access token to file \"{tokenFile}\"."
     File.ReadAllText(tokenFile).Trim()
 
-let nondeterministic_solvers = Map [
+let nondeterministicSolvers = Map [
     "randomDummyV1", DummySolver.RandomDummyV1
     "randomDummyV2", DummySolver.RandomDummyV2
+]
+
+let experimentalSolvers = Map [
+    "lambda", LambdaSolver.Solve
 ]
 
 let solvers = Map(Seq.concat [
         seq {
             "dummyV1", DummySolver.SolveV1
             "dummyV2", DummySolver.SolveV2
-            // "lambda", LambdaSolver.Solve
             "foxtranV1", FoxtranSolver.FoxtranSolveV1
             "foxtranV2", FoxtranSolver.FoxtranSolveV2
         };
-        Map.toSeq nondeterministic_solvers
+        Map.toSeq nondeterministicSolvers
     ])
 
 let readProblem (problemId: int) =
@@ -75,9 +78,13 @@ let writeSolution (problemId: int) solution solutionMetadata =
 
 let solve (problemId: int) (solverName: SolverName) =
     let solveWithSolver (problemId: int) (solverName: SolverName) =
-        printf $"Trying to solve problem {problemId} with solver {solverName}... "
+        printfn $"Trying to solve problem {problemId} with solver {solverName}..."
         let problem = readProblem problemId
-        let solver = solvers[solverName]
+        let solver =
+            solvers
+            |> Map.tryFind solverName
+            |> Option.orElseWith (fun () -> experimentalSolvers |> Map.tryFind solverName)
+            |> Option.get // TODO: unsafe. gsomix
         let solution = solver problem
         let score = Scoring.CalculateScore problem solution
         printfn $"On problem {problemId}, solver {solverName} yielded a score of {score}"
@@ -94,7 +101,7 @@ let solve (problemId: int) (solverName: SolverName) =
         |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
         |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)
     | "best-nondeterministic" ->
-        nondeterministic_solvers
+        nondeterministicSolvers
         |> Map.toSeq
         |> Seq.map (fun (solverName, _) -> solveWithSolver problemId solverName)
         |> Seq.maxBy (fun (_, solutionMetadata) -> solutionMetadata.Score)
