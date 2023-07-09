@@ -25,7 +25,9 @@ type MusicianAttendeeDistance =
 
     member this.SetDistance(musicianId: int) (attendeeId: int) (distance: double): MusicianAttendeeDistance =
         let index = this.GetIndex musicianId attendeeId
-        { this with Distances = this.Distances.SetItem(index, distance) }
+        if distance <> this.Distances.[index]
+        then { this with Distances = this.Distances.SetItem(index, distance) }
+        else this
 
     member this.Distance(musicianId: int) (attendeeId: int): double =
         let index = this.GetIndex musicianId attendeeId
@@ -56,7 +58,9 @@ type MusicianBlocks =
 
     member this.SetBlocks(blockingMusicianId: int) (blockedMusicianId: int) (attendeeId: int) (blocks: bool): MusicianBlocks =
         let index = this.GetIndex blockingMusicianId blockedMusicianId attendeeId
-        { this with Blocks = this.Blocks.SetItem(index, blocks) }
+        if blocks <> this.Blocks.[index]
+        then { this with Blocks = this.Blocks.SetItem(index, blocks) }
+        else this
 
     member this.IsSoundBlockedBetween(blockedMusicianId: int) (attendeeId: int): bool =
         { 0 .. this.MusiciansCount-1 }
@@ -93,7 +97,9 @@ type PillarsBlocks =
         if this.PillarsCount > 0
         then
             let index = this.GetIndex pillarId musicianId attendeeId
-            { this with Blocks = this.Blocks.SetItem(index, blocks) }
+            if blocks <> this.Blocks.[index]
+            then { this with Blocks = this.Blocks.SetItem(index, blocks) }
+            else this
         else this
 
     member this.IsSoundBlockedBy(pillarId: int) (musicianId: int) (attendeeId: int): bool =
@@ -124,7 +130,9 @@ type MusicianAttendeeImpact =
 
     member this.SetImpact(musicianId: int) (attendeeId: int) (impact: double): MusicianAttendeeImpact =
         let index = this.GetIndex musicianId attendeeId
-        { this with Impacts = this.Impacts.SetItem(index, impact) }
+        if impact <> this.Impacts.[index]
+        then { this with Impacts = this.Impacts.SetItem(index, impact) }
+        else this
 
     member this.Impact(musicianId: int) (attendeeId: int): double =
         let index = this.GetIndex musicianId attendeeId
@@ -151,7 +159,9 @@ type MusicianDistances =
 
     member this.SetDistance(fromMusicianId: int) (toMusicianId: int) (distance: double): MusicianDistances =
         let index = this.GetIndex fromMusicianId toMusicianId
-        { this with Distances = this.Distances.SetItem(index, distance) }
+        if distance <> this.Distances.[index]
+        then { this with Distances = this.Distances.SetItem(index, distance) }
+        else this
 
     member this.Distance(fromMusicianId: int) (toMusicianId: int): double =
         let index = this.GetIndex fromMusicianId toMusicianId
@@ -182,7 +192,9 @@ type MusicianClosenessFactor =
         }
 
     member this.SetClosenessFactor(musicianId: int) (factor: double): MusicianClosenessFactor =
-        { this with Factor = this.Factor.SetItem(musicianId, factor) }
+        if factor <> this.Factor.[musicianId]
+        then { this with Factor = this.Factor.SetItem(musicianId, factor) }
+        else this
 
     member this.ClosenessFactor(musicianId: int): double =
         this.Factor[musicianId]
@@ -208,7 +220,9 @@ type MusicianAttendeeTotalImpact =
 
     member this.SetTotalImpact(musicianId: int) (attendeeId: int) (total_impact: double): MusicianAttendeeTotalImpact =
         let index = this.GetIndex musicianId attendeeId
-        { this with Impacts = this.Impacts.SetItem(index, total_impact) }
+        if total_impact <> this.Impacts.[index]
+        then { this with Impacts = this.Impacts.SetItem(index, total_impact) }
+        else this
 
     member this.TotalImpact(musicianId: int) (attendeeId: int): double =
         let index = this.GetIndex musicianId attendeeId
