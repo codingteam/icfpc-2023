@@ -40,6 +40,28 @@ type MusicianBlocks =
 
     // TODO: implement getter/setter with indexing
 
+type PillarsBlocks =
+    {
+        MusiciansCount: int
+        AttendeesCount: int
+        PillarsCount: int
+        Blocks: ImmutableArray<bool>
+    }
+
+    static member Create(musiciansCount: int) (attendeesCount: int) (pillarsCount: int): PillarsBlocks =
+        // FIXME: note that pillarsCount can be zero -- in that case, the answer is always false
+        let elements_count = musiciansCount * attendeesCount * pillarsCount
+        let blocks = (Array.zeroCreate elements_count).ToImmutableArray()
+        {
+            MusiciansCount = musiciansCount
+            AttendeesCount = attendeesCount
+            PillarsCount = pillarsCount
+            Blocks = blocks
+        }
+
+    // TODO: implement getter/setter with indexing
+    // note that pillarsCount can be zero -- in that case, the answer is always false
+
 type MusicianAttendeeImpact =
     {
         MusiciansCount: int
@@ -115,6 +137,7 @@ type State =
         MusicianPlacements: ImmutableArray<PointD>
         MusicianAttendeeDistance: MusicianAttendeeDistance
         MusicianBlocksOtherForAttendee: MusicianBlocks
+        PillarBlocksSoundBetweenMusicianAndAttendee: PillarsBlocks
         MusicianAttendeeImpact: MusicianAttendeeImpact
         MusicianDistanceWithSameInstrument: MusicianDistanceWithSameInstrument
         MusicianClosenessFactor: MusicianClosenessFactor
@@ -131,11 +154,15 @@ type State =
     member private this.UpdateMusicianBlocks(musicianId: int): State =
         failwith "unimplemented"
 
+    member private this.UpdatePillarsBlocks(musicianId: int): State =
+        failwith "unimplemented"
+
     member private this.UpdateMusicianAttendeeImpact(musicianId: int): State =
         let state =
             this
                 .UpdateMusicianAttendeeDistances(musicianId)
                 .UpdateMusicianBlocks(musicianId)
+                .UpdatePillarsBlocks(musicianId)
         failwith "unimplemented"
 
     member private this.UpdateMusicianDistanceToSameInstrument(musicianId: int): State =
@@ -164,6 +191,7 @@ type State =
                 MusicianPlacements = musician_placements.ToImmutableArray()
                 MusicianAttendeeDistance = MusicianAttendeeDistance.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianBlocksOtherForAttendee = MusicianBlocks.Create problem.Musicians.Length problem.Attendees.Length
+                PillarBlocksSoundBetweenMusicianAndAttendee = PillarsBlocks.Create problem.Musicians.Length problem.Attendees.Length problem.Pillars.Length
                 MusicianAttendeeImpact = MusicianAttendeeImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianDistanceWithSameInstrument = MusicianDistanceWithSameInstrument.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianClosenessFactor = MusicianClosenessFactor.Create problem.Musicians.Length
