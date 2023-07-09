@@ -267,3 +267,14 @@ let ``Scoring yields the expected score for the sample problem from the spec`` (
         }
 
     Assert.Equal(5343.0, CalculateScore problem solution)
+
+[<Fact>]
+let ``Stadium detects intersection when blocking musician is right on the line`` () =
+    let stadium =
+        {
+            Center1 = PointD(1100.0, 100.0)
+            Center2 = PointD(1100.0, 800.0)
+            Radius = 5.0
+        }
+    let blockingMusician = PointD(1100.0, 150.0)
+    Assert.True(stadium.Contains blockingMusician)

@@ -7,6 +7,7 @@ list(APPEND SOURCES
   ${dir}/line.f90
   ${dir}/guess.f90
   ${dir}/reduce.f90
+  ${dir}/grid.f90
 )
 
 set(SOURCES ${SOURCES} PARENT_SCOPE)

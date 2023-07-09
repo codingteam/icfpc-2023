@@ -15,6 +15,7 @@ module domain
   type, public :: musician_t
     type(Vec2D_t) :: pos
     integer(8) :: instrument
+    real(8) :: volume = 1.0
   end type
 
   type, public :: pillar_t
@@ -93,7 +94,7 @@ contains
         read(LU, *) this%N_musicians
         allocate(this%musicians(this%N_musicians))
         do i = 1, this%N_musicians
-          read(LU, *) this%musicians(i)%pos%x, this%musicians(i)%pos%y, this%musicians(i)%instrument
+          read(LU, *) this%musicians(i)%pos%x, this%musicians(i)%pos%y, this%musicians(i)%instrument, this%musicians(i)%volume
           this%musicians(i)%instrument = this%musicians(i)%instrument + 1
         end do
         do i = 1, this%N_musicians
@@ -122,16 +123,19 @@ contains
     close(LU)
   end subroutine room_load
 
-  subroutine room_dump(this, filename)
+  subroutine room_dump(this, filename, algo)
     class(room_t), intent(inout) :: this
-    character(len=*), intent(in) :: filename
+    character(len=*), intent(in) :: filename, algo
     integer :: LU, i
     ! Open the file
     open(newunit=LU, file=filename, status='replace', action='write')
+    write(LU, "(A)") "[algorithm]"
+    write(LU, "(A)") algo
     write(LU, "(A)") "[musicians]"
     write(LU, "(I0)") this%N_musicians
     do i = 1, this%N_musicians
-      write(LU, "(F12.6,A,F12.6,A,I0)") this%musicians(i)%pos%x, " ", this%musicians(i)%pos%y, " ", this%musicians(i)%instrument
+      write(LU, "(F12.6,A,F12.6,A,I0,A,I0)") this%musicians(i)%pos%x, " ", this%musicians(i)%pos%y, " ", &
+                                             this%musicians(i)%instrument, " ", this%musicians(i)%volume
     end do
     close(LU)
   end subroutine room_dump
@@ -205,12 +209,18 @@ contains
     Dma = this%build_MA_invsquareddistance_matrix()
     Bma = this%build_block_matrix()
     if (this%version == 1) then
+      do i = 1, this%N_musicians
+        Tma(i,:) = Tma(i,:) * this%musicians(i)%volume
+      end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
     else
       Dmm = this%build_MM_distance_matrix()
       Dm = 1._8 + sum(Dmm, dim=1)
+      do i = 1, this%N_musicians
+        Dm(i) = Dm(i) * this%musicians(i)%volume
+      end do
       do i = 1, this%N_attendees
-        Tma(:,i) = Tma(:,i)
+        Tma(:,i) = Tma(:,i) * Dm
       end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
       energy = 0.0
