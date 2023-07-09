@@ -20,7 +20,16 @@ type MusicianAttendeeDistance =
             Distances = distances
         }
 
-    // TODO: implement getter/setter with indexing
+    member private this.GetIndex(musicianId: int) (attendeeId: int): int =
+        musicianId * this.MusiciansCount + attendeeId
+
+    member this.SetDistance(musicianId: int) (attendeeId: int) (distance: double): MusicianAttendeeDistance =
+        let index = this.GetIndex musicianId attendeeId
+        { this with Distances = this.Distances.SetItem(index, distance) }
+
+    member this.Distance(musicianId: int) (attendeeId: int): double =
+        let index = this.GetIndex musicianId attendeeId
+        this.Distances[index]
 
 type MusicianBlocks =
     {
@@ -38,7 +47,16 @@ type MusicianBlocks =
             Blocks = blocks
         }
 
-    // TODO: implement getter/setter with indexing
+    member private this.GetIndex(musicianId: int) (attendeeId: int): int =
+        musicianId * this.MusiciansCount + attendeeId
+
+    member this.SetBlocks(musicianId: int) (attendeeId: int) (blocks: bool): MusicianBlocks =
+        let index = this.GetIndex musicianId attendeeId
+        { this with Blocks = this.Blocks.SetItem(index, blocks) }
+
+    member this.IsSoundBlockedBetween(musicianId: int) (attendeeId: int): bool =
+        let index = this.GetIndex musicianId attendeeId
+        this.Blocks[index]
 
 type PillarsBlocks =
     {
@@ -66,19 +84,28 @@ type MusicianAttendeeImpact =
     {
         MusiciansCount: int
         AttendeesCount: int
-        Impact: ImmutableArray<double>
+        Impacts: ImmutableArray<double>
     }
 
     static member zeroCreate(musiciansCount: int) (attendeesCount: int): MusicianAttendeeImpact =
         let elements_count = musiciansCount * attendeesCount
-        let impact = (Array.zeroCreate elements_count).ToImmutableArray()
+        let impacts = (Array.zeroCreate elements_count).ToImmutableArray()
         {
             MusiciansCount = musiciansCount
             AttendeesCount = attendeesCount
-            Impact = impact
+            Impacts = impacts
         }
 
-    // TODO: implement getter/setter with indexing
+    member private this.GetIndex(musicianId: int) (attendeeId: int): int =
+        musicianId * this.MusiciansCount + attendeeId
+
+    member this.SetImpact(musicianId: int) (attendeeId: int) (impact: double): MusicianAttendeeImpact =
+        let index = this.GetIndex musicianId attendeeId
+        { this with Impacts = this.Impacts.SetItem(index, impact) }
+
+    member this.Impact(musicianId: int) (attendeeId: int): double =
+        let index = this.GetIndex musicianId attendeeId
+        this.Impacts[index]
 
 type MusicianDistanceWithSameInstrument =
     {
