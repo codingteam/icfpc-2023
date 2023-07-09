@@ -78,8 +78,8 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
     let area_for_musicians: Rectangle =
         {
             BottomLeft = problem.StageBottomLeft + PointD(SafeDistanceToEdge, SafeDistanceToEdge)
-            Width = problem.StageWidth - 2.0*SafeDistanceToEdge
-            Height = problem.StageHeight - 2.0*SafeDistanceToEdge
+            Width = problem.StageWidth - SafeDistanceToEdge
+            Height = problem.StageHeight - SafeDistanceToEdge
         }
     let musicians_are_safely_on_stage =
         solution.Placements |> Seq.forall (fun (p) -> area_for_musicians.Contains(p))
