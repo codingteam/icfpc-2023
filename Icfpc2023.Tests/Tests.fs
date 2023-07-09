@@ -3,6 +3,7 @@ module Tests
 open System.IO
 
 open Icfpc2023
+open Icfpc2023.IterativeScoring
 open Xunit
 
 [<Fact>]
@@ -36,3 +37,29 @@ let ``Can check if rectangle contains a point``() =
 
     Assert.False(rectangle.Contains(PointD(5.0, 501.0)))
     Assert.False(rectangle.Contains(PointD(101.0, 30.0)))
+
+[<Fact>]
+let ``IterativeScoring state is invalid if some musician is too close to the edge of the stage``() =
+    let problem =
+        {
+            RoomWidth = 100.0
+            RoomHeight = 100.0
+            StageWidth = 10.0
+            StageHeight = 10.0
+            StageBottomLeft = PointD(0.0, 0.0)
+            Musicians = [| 1 |]
+            Attendees =
+                [|
+                    {
+                        X = 50.0
+                        Y = 50.0
+                        Tastes = [| 100.0 |]
+                    }
+                |]
+            Pillars = [||]
+        }
+    let musician_placements = [| PointD(1.0, 1.0) |]
+
+    let state = State.Create(problem, musician_placements)
+
+    Assert.False(state.IsValid)

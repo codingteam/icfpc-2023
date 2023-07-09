@@ -213,13 +213,16 @@ type State =
         { this with MusicianPlacements = new_musician_placements }
 
     member private this.UpdateMusicianAttendeeDistances(musicianId: int): State =
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        this
 
     member private this.UpdateMusicianBlocks(musicianId: int): State =
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        this
 
     member private this.UpdatePillarsBlocks(musicianId: int): State =
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        this
 
     member private this.UpdateMusicianAttendeeImpact(musicianId: int): State =
         let state =
@@ -227,21 +230,25 @@ type State =
                 .UpdateMusicianAttendeeDistances(musicianId)
                 .UpdateMusicianBlocks(musicianId)
                 .UpdatePillarsBlocks(musicianId)
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        state
 
     member private this.UpdateMusicianDistanceToSameInstrument(musicianId: int): State =
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        this
 
     member private this.UpdateMusicianClosenessFactor(musicianId: int): State =
         let state = this.UpdateMusicianDistanceToSameInstrument(musicianId)
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        state
 
     member private this.UpdateMusicianAttendeeTotalImpact(musicianId: int): State =
         let state =
             this
                 .UpdateMusicianAttendeeImpact(musicianId)
                 .UpdateMusicianClosenessFactor(musicianId)
-        failwith "unimplemented"
+        // TODO: failwith "unimplemented"
+        state
 
     /// Create initial state with given musician placements.
     static member Create(problem: Problem, musician_placements: PointD[]): State =
@@ -273,6 +280,21 @@ type State =
 
     /// Checks if all musicians are far enough from stage edges and each other.
     member this.IsValid: bool =
+        let SafeDistanceToEdge = 10.0
+
+        let area_for_musicians: Rectangle =
+            {
+                BottomLeft = this.Problem.StageBottomLeft + PointD(SafeDistanceToEdge, SafeDistanceToEdge)
+                Width = this.Problem.StageWidth - 2.0*SafeDistanceToEdge
+                Height = this.Problem.StageHeight - 2.0*SafeDistanceToEdge
+            }
+        let musicians_are_safely_on_stage =
+            this.MusicianPlacements |> Seq.forall (fun (p) -> area_for_musicians.Contains(p))
+        if not musicians_are_safely_on_stage
+        then false
+        else
+
+        // TODO: check if musicians are far enough from each other
         failwith "unimplemented"
 
     /// Score for this solution.
