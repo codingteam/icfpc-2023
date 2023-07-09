@@ -2,6 +2,9 @@ module Icfpc2023.DerFreeSolver
 
 open Accord.Math.Optimization
 
+#nowarn "25"
+#nowarn "49"
+
 let private pointsToArray (points: PointD[]) =
     points
     |> Seq.map (fun p -> [| p.X; p.Y |])

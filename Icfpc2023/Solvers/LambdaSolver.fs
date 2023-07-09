@@ -4,6 +4,9 @@ open Accord.Math.Optimization
 open System
 open System.Linq
 
+#nowarn "25"
+#nowarn "49"
+
 let OVERLAP_DISTANCE = 5.0
 let MUSICAL_MIN_DISTANCE = 10.0
 
