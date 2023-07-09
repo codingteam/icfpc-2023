@@ -107,7 +107,7 @@ contains
     end do
   end subroutine generate_grid
   subroutine generate_radial_grid(grid, minx, maxx, miny, maxy, center, Nrad)
-    real(8), parameter :: radial(11) = 10._8 + (/ 0.0_8, 0.46_8, 0.97_8, 1.55_8, 2.22_8, 3.01_8, 3.98_8, 5.23_8, 6.99_8, 10.0_8, 15.0_8 /)
+    real(8), parameter :: radial(11) = 10._8 + (/ 1e-7_8, 0.46_8, 0.97_8, 1.55_8, 2.22_8, 3.01_8, 3.98_8, 5.23_8, 6.99_8, 10.0_8, 15.0_8 /)
     real(8), parameter :: PI2 = 4.0_8*atan(1.0_8)*2._8
     class(grid_t), intent(inout) :: grid
     real(8), intent(in) :: minx, maxx, miny, maxy
