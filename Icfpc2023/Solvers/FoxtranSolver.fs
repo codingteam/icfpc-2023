@@ -92,6 +92,7 @@ let private PlaceMusicianAndDestroyPosition problem
                                             position
                                             instrument
                                             (placements: PointD array)
+                                            (volumes: double array)
                                             (shadowMatrix: double[,] option)
                                             (musicianIndicesPerInstrument: Dictionary<int, list<int>>)
                                             (gridsPerInstrument: Score[,][]) =
@@ -100,6 +101,13 @@ let private PlaceMusicianAndDestroyPosition problem
     // Set to target array:
     if placements[musician] <> PointD(0.0, 0.0) then failwith "Second time placement in same musician slot!"
     placements[musician] <- GridCoordToPhysicalCoord problem position
+
+    // Calculate volume:
+    if volumes[musician] <> 0.0 then failwith "Second time placement in same musician volume slot!"
+    let currentValue =
+        let struct(x, y) = position
+        gridsPerInstrument[instrument][x, y]
+    volumes[musician] <- if currentValue >= 0 then 10.0 else 0.0
 
     // Clean up existing data on musician:
     match rest with
@@ -153,6 +161,7 @@ let FoxtranSolveV1(problem: Problem): Solution =
 
     let musicianIndicesPerInstrument = GetMusicianIndicesPerInstrument problem
     let placements = Array.zeroCreate problem.Musicians.Length
+    let volumes = Array.zeroCreate problem.Musicians.Length
     while musicianIndicesPerInstrument.Count > 0 do
         let instrument = ChooseBestInstrument musicianIndicesPerInstrument.Keys gridsPerInstrument None
         let position = ChooseBestPosition(gridsPerInstrument[instrument], None)
@@ -160,13 +169,14 @@ let FoxtranSolveV1(problem: Problem): Solution =
                                         position
                                         instrument
                                         placements
+                                        volumes
                                         None
                                         musicianIndicesPerInstrument
                                         gridsPerInstrument
 
     {
         Placements = placements
-        Volumes = Solution.defaultVolumes problem.Musicians.Length
+        Volumes = volumes
     }
 
 let FoxtranSolveV2(problem: Problem): Solution =
@@ -199,6 +209,7 @@ let FoxtranSolveV2(problem: Problem): Solution =
 
     let musicianIndicesPerInstrument = GetMusicianIndicesPerInstrument problem
     let placements = Array.zeroCreate problem.Musicians.Length
+    let volumes = Array.zeroCreate problem.Musicians.Length
     while musicianIndicesPerInstrument.Count > 0 do
         let instrument = ChooseBestInstrument musicianIndicesPerInstrument.Keys gridsPerInstrument (Some shadowMatrix)
         let position = ChooseBestPosition(gridsPerInstrument[instrument], Some shadowMatrix)
@@ -206,11 +217,12 @@ let FoxtranSolveV2(problem: Problem): Solution =
                                         position
                                         instrument
                                         placements
+                                        volumes
                                         (Some shadowMatrix)
                                         musicianIndicesPerInstrument
                                         gridsPerInstrument
 
     {
         Placements = placements
-        Volumes = Solution.defaultVolumes problem.Musicians.Length
+        Volumes = volumes
     }
