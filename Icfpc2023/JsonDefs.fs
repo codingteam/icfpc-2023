@@ -33,8 +33,13 @@ type PlacementJson = {
     y: double
 }
 
+type SolutionLegacyJson = {
+    placements: PlacementJson[]
+}
+
 type SolutionJson = {
     placements: PlacementJson[]
+    volumes: double[]
 }
 
 type SolutionMetadataJson = {
@@ -61,13 +66,22 @@ let ReadProblemFromJson(json: string): Problem =
 let WriteSolutionToJson(solution: Solution): string =
     let solJson = {
         placements = solution.Placements |> Array.map(fun p -> { x = p.X; y = p.Y })
+        volumes = solution.Volumes
     }
     JsonConvert.SerializeObject(solJson)
+
+let ReadSolutionLegacyFromJson(json: string): Solution =
+    let solJson = JsonConvert.DeserializeObject<SolutionJson>(json)
+    {
+        Placements = solJson.placements |> Array.map(fun p -> PointD(p.x, p.y))
+        Volumes = Solution.defaultVolumes solJson.placements.Length
+    }
 
 let ReadSolutionFromJson(json: string): Solution =
     let solJson = JsonConvert.DeserializeObject<SolutionJson>(json)
     {
         Placements = solJson.placements |> Array.map(fun p -> PointD(p.x, p.y))
+        Volumes = solJson.volumes
     }
 
 let WriteSolutionMetadataToJson(metadata: SolutionMetadata): string =
@@ -91,6 +105,10 @@ let ReadProblemFromFile(filePath: string): Problem =
 let ReadSolutionFromFile(filePath: string): Solution =
     let json = File.ReadAllText(filePath)
     ReadSolutionFromJson json
+
+let ReadSolutionLegacyFromFile(filePath: string): Solution =
+    let json = File.ReadAllText(filePath)
+    ReadSolutionLegacyFromJson json
 
 let ReadSolutionMetadataFromFile(filePath: string): SolutionMetadata =
     let json = File.ReadAllText(filePath)

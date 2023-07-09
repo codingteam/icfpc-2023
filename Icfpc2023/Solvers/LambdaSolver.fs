@@ -389,7 +389,13 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
         solution <- method.Solution
         printfn $"λ: Objective value: {method.Value}"
 
-        let score = Scoring.CalculateScore problem { Placements = solution |> arrayToPoints }
+        let score = Scoring.CalculateScore problem {
+            Placements = solution |> arrayToPoints
+            Volumes = Solution.defaultVolumes problem.Musicians.Length
+        }
         printfn $"λ: Current score: {score}"
 
-    { Placements = solution |> arrayToPoints }
+    {
+        Placements = solution |> arrayToPoints
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }

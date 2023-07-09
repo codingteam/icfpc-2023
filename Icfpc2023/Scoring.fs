@@ -88,7 +88,7 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
         |> Seq.exists (fun (m1, m2) -> m1.Location.DistanceTo(m2.Location) < 10.0)
 
     if tooClose
-    then 0.0
+    then -1000000000.0
     else
         problem.Attendees |> Array.sumBy(CalculateAttendeeScore problem.Pillars musicians closeness_factors)
 

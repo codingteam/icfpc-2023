@@ -164,7 +164,10 @@ let FoxtranSolveV1(problem: Problem): Solution =
                                         musicianIndicesPerInstrument
                                         gridsPerInstrument
 
-    { Placements = placements }
+    {
+        Placements = placements
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }
 
 let FoxtranSolveV2(problem: Problem): Solution =
     let instrumentCount = problem.Attendees[0].Tastes.Length
@@ -207,4 +210,7 @@ let FoxtranSolveV2(problem: Problem): Solution =
                                         musicianIndicesPerInstrument
                                         gridsPerInstrument
 
-    { Placements = placements }
+    {
+        Placements = placements
+        Volumes = Solution.defaultVolumes problem.Musicians.Length
+    }

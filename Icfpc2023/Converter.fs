@@ -56,4 +56,7 @@ let FromNewIni(text: string): Solution =
         let [| xs; ys; _is |] = components
         let point = PointD(double xs, double ys)
         placements[i - 1] <- point
-    { Placements = placements }
+    {
+        Placements = placements
+        Volumes = Solution.defaultVolumes placements.Length
+    }
