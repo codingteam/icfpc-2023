@@ -243,6 +243,7 @@ type State =
                 .UpdateMusicianClosenessFactor(musicianId)
         failwith "unimplemented"
 
+    /// Create initial state with given musician placements.
     static member Create(problem: Problem, musician_placements: PointD[]): State =
         let musician_attendee_distance =
             let builder = ImmutableArray.CreateBuilder<ImmutableArray<double>>()
@@ -274,6 +275,7 @@ type State =
     member this.IsValid: bool =
         failwith "unimplemented"
 
+    /// Score for this solution.
     member this.Score: Score =
         if not this.IsValid
         then 0.0
