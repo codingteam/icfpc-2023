@@ -63,6 +63,30 @@ let ``IterativeScoring state is invalid if some musician is too close to the edg
     Assert.False(state.IsValid)
 
 [<Fact>]
+let ``IterativeScoring state is valid if all musicians are far enough from the edge of the stage``() =
+    let problem =
+        {
+            RoomWidth = 100.0
+            RoomHeight = 100.0
+            StageWidth = 30.0
+            StageHeight = 50.0
+            StageBottomLeft = PointD(0.0, 0.0)
+            Musicians = [| 1; 2; 3 |]
+            Attendees =
+                [|
+                    {
+                        X = 90.0
+                        Y = 90.0
+                        Tastes = [| 100.0 |]
+                    }
+                |]
+            Pillars = [||]
+        }
+
+    let state = State.Create(problem, [| PointD(10.0, 10.0); PointD(20.0, 10.0); PointD(20.0, 40.0) |])
+    Assert.True(state.IsValid)
+
+[<Fact>]
 let ``IterativeScoring state is invalid if two musicians are closer than 10 to each other``() =
     let problem =
         {
@@ -71,7 +95,7 @@ let ``IterativeScoring state is invalid if two musicians are closer than 10 to e
             StageWidth = 50.0
             StageHeight = 50.0
             StageBottomLeft = PointD(0.0, 0.0)
-            Musicians = [| 1 |]
+            Musicians = [| 1; 2 |]
             Attendees =
                 [|
                     {
@@ -85,3 +109,27 @@ let ``IterativeScoring state is invalid if two musicians are closer than 10 to e
 
     let state = State.Create(problem, [| PointD(10.0, 10.0); PointD(11.0, 10.0) |])
     Assert.False(state.IsValid)
+
+[<Fact>]
+let ``IterativeScoring state is valid if all musicians are 10 or farther from each other``() =
+    let problem =
+        {
+            RoomWidth = 1_000.0
+            RoomHeight = 100.0
+            StageWidth = 60.0
+            StageHeight = 80.0
+            StageBottomLeft = PointD(0.0, 0.0)
+            Musicians = [| 1; 1; 1 |]
+            Attendees =
+                [|
+                    {
+                        X = 90.0
+                        Y = 90.0
+                        Tastes = [| 100.0 |]
+                    }
+                |]
+            Pillars = [||]
+        }
+
+    let state = State.Create(problem, [| PointD(10.0, 10.0); PointD(20.0, 10.0); PointD(50.0, 70.0) |])
+    Assert.True(state.IsValid)

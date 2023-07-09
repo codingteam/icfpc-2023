@@ -2,7 +2,7 @@ module Icfpc2023.IterativeScoring
 
 open System.Collections.Immutable
 
-type private MusicianPlacements = PointD[]
+type MusicianPlacements = ImmutableArray<PointD>
 
 type MusicianAttendeeDistance =
     {
@@ -149,8 +149,16 @@ type MusicianDistances =
         let index = this.GetIndex fromMusicianId toMusicianId
         this.Distances[index]
 
-    member this.HasDistancesUnder(limit: double): bool =
-        this.Distances |> Seq.exists (fun (d) -> d < limit)
+    member this.AnyMusiciansAreTooClose: bool =
+        if this.MusiciansCount <= 1
+        then false // when there's only one musician, it can't be "too close to itself"
+        else
+            seq {
+                for fromId in 0 .. this.MusiciansCount-1 do
+                    for toId in 0 .. fromId-1 do
+                        if fromId <> toId then yield (fromId, toId)
+            }
+            |> Seq.exists (fun (fromId, toId) -> this.Distance fromId toId < 10.0)
 
 type MusicianClosenessFactor =
     {
@@ -201,7 +209,7 @@ type MusicianAttendeeTotalImpact =
 type State =
     {
         Problem: Problem
-        MusicianPlacements: ImmutableArray<PointD>
+        MusicianPlacements: MusicianPlacements
         MusicianAttendeeDistance: MusicianAttendeeDistance
         MusicianBlocksOtherForAttendee: MusicianBlocks
         PillarBlocksSoundBetweenMusicianAndAttendee: PillarsBlocks
@@ -212,8 +220,7 @@ type State =
     }
 
     member private this.UpdateMusicianPlacement(musicianId: int, place: PointD): State =
-        let new_musician_placements = this.MusicianPlacements.SetItem(musicianId, place)
-        { this with MusicianPlacements = new_musician_placements }
+        { this with MusicianPlacements = this.MusicianPlacements.SetItem(musicianId, place) }
 
     member private this.UpdateMusicianAttendeeDistances(musicianId: int): State =
         // TODO: failwith "unimplemented"
@@ -236,12 +243,21 @@ type State =
         // TODO: failwith "unimplemented"
         state
 
-    member private this.UpdateMusicianDistanceToSameInstrument(musicianId: int): State =
-        // TODO: failwith "unimplemented"
-        this
+    member private this.UpdateMusicianDistances(musicianId: int): State =
+        let me = this.MusicianPlacements.[musicianId]
+        seq { 0 .. this.MusicianPlacements.Length-1 }
+        |> Seq.fold
+            (fun state otherId ->
+                if musicianId = otherId
+                then state
+                else
+                    let distance = state.MusicianPlacements.[otherId].DistanceTo(me)
+                    let distances = state.MusicianDistances.SetDistance musicianId otherId distance
+                    { state with MusicianDistances = distances })
+            this
 
     member private this.UpdateMusicianClosenessFactor(musicianId: int): State =
-        let state = this.UpdateMusicianDistanceToSameInstrument(musicianId)
+        let state = this.UpdateMusicianDistances(musicianId)
         // TODO: failwith "unimplemented"
         state
 
@@ -288,16 +304,14 @@ type State =
         let area_for_musicians: Rectangle =
             {
                 BottomLeft = this.Problem.StageBottomLeft + PointD(SafeDistanceToEdge, SafeDistanceToEdge)
-                Width = this.Problem.StageWidth - 2.0*SafeDistanceToEdge
-                Height = this.Problem.StageHeight - 2.0*SafeDistanceToEdge
+                Width = this.Problem.StageWidth - SafeDistanceToEdge
+                Height = this.Problem.StageHeight - SafeDistanceToEdge
             }
         let musicians_are_safely_on_stage =
             this.MusicianPlacements |> Seq.forall (fun (p) -> area_for_musicians.Contains(p))
         if not musicians_are_safely_on_stage
         then false
-        else
-
-        not(this.MusicianDistances.HasDistancesUnder(10.0))
+        else not this.MusicianDistances.AnyMusiciansAreTooClose
 
     /// Score for this solution.
     member this.Score: Score =
