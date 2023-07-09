@@ -4,13 +4,7 @@ import numpy as np
 
 from scoring import *
 
-
-@dataclass
-class Scene:
-    x: float
-    y: float
-    w: float
-    h: float
+from domain import *
 
 
 def initial_solution(scene: Scene, n_musicians, sigma) -> np.ndarray:
@@ -27,11 +21,22 @@ def ES_solve(scene: Scene,
     initial_sigma = 10
     step_count = 100
     population_size = 20
-    n_musicians, = mus_instruments.shape
+    score_k = 1
+    mus_dist_penalty_k = -100
+    mus_scene_penalty_k = -100
+
+    n_musicians = mus_instruments.shape[0]
 
     def call_score(mus_places: np.ndarray) -> float:
-        return score(mus_instruments, mus_places, att_places, att_tastes, pillar_center_radius,
-                     use_playing_together_ext)
+        sc = mc_score(mus_instruments, mus_places, att_places, att_tastes, pillar_center_radius,
+                      use_playing_together_ext,
+                      mus_ratio=0.1,
+                      att_ratio=0.1,
+                      pillar_ratio=0.1,
+                      n_eval=50)
+        mus_dist_penalty = musicians_distance_penalty(mus_places)
+        mus_scene_penalty = musicians_out_of_scene_penalty(scene, mus_places)
+        return sc * score_k + mus_scene_penalty * mus_scene_penalty_k + mus_dist_penalty * mus_dist_penalty_k
 
     def gen_population(parent, sigma) -> [np.ndarray]:
         return [np.random.normal(0, sigma, (n_musicians, 2)) + parent for _ in range(population_size)]
@@ -41,11 +46,13 @@ def ES_solve(scene: Scene,
     for step in range(step_count):
         sigma = initial_sigma - initial_sigma * step / step_count
         population = gen_population(current_solution, sigma)
+        # TODO: make solutions valid / filter invalid
 
         for solution in population:
             sol_score = call_score(solution)
             if sol_score > current_score:
                 current_solution = solution
                 current_score = sol_score
-
-    return current_score, current_solution
+    real_score = score(mus_instruments, current_solution, att_places, att_tastes, pillar_center_radius,
+                       use_playing_together_ext)
+    return real_score, current_solution
