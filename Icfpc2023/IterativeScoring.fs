@@ -4,41 +4,43 @@ open System.Collections.Immutable
 
 type private MusicianPlacements = PointD[]
 
-type State = {
-    Problem: Problem
-    MusicianPlacements: ImmutableArray<PointD> // [0]
-
-    // TODO: add a matrix of attendee-musician distances (squared) -- depends on 0. [1]
-
-    // TODO: add a 3D matrix of musician-musician-attendee bools indicating if the first musician blocks the second musician's sound for this attendee -- depends on 0. [6]
-
-    // TODO: add a matrix of musician impact on each attendee -- depends on 1 and 6. [2]
-
-    // TODO: add a matrix of distances from each musician to each other musician playing the same instrument -- depends on 0. [3]
-
-    // TODO: add a vector of closeness factor (length == number of musicians) -- depends on 3. [4]
-
-    // TODO: add matrix of closeness*impact (for each attendee-musician pair) -- depends on 4 and 2. [5]
-    }
-
-let InitState(problem: Problem, musician_placements: PointD[]): State =
+type State =
     {
-        Problem = problem
-        MusicianPlacements = musician_placements.ToImmutableArray()
+        Problem: Problem
+        MusicianPlacements: ImmutableArray<PointD> // [0]
+
+        // TODO: add a matrix of attendee-musician distances (squared) -- depends on 0. [1]
+
+        // TODO: add a 3D matrix of musician-musician-attendee bools indicating if the first musician blocks the second musician's sound for this attendee -- depends on 0. [6]
+
+        // TODO: add a matrix of musician impact on each attendee -- depends on 1 and 6. [2]
+
+        // TODO: add a matrix of distances from each musician to each other musician playing the same instrument -- depends on 0. [3]
+
+        // TODO: add a vector of closeness factor (length == number of musicians) -- depends on 3. [4]
+
+        // TODO: add matrix of closeness*impact (for each attendee-musician pair) -- depends on 4 and 2. [5]
     }
 
-/// Put musician at a given place and return updated state. Leave the original state unmodified
-let PlaceMusician(state: State, musicianId: int, place: PointD): State =
-    let new_musician_placements = state.MusicianPlacements.SetItem(musicianId, place)
-    // TODO: signal to other fields that this musician moved so they can re-calculate stuff
-    { state with
-        MusicianPlacements = new_musician_placements
-    }
+    static member Create(problem: Problem, musician_placements: PointD[]): State =
+        {
+            Problem = problem
+            MusicianPlacements = musician_placements.ToImmutableArray()
+        }
 
-/// Checks if all musicians are far enough from stage edges and each other.
-let IsValid(state: State): bool = failwith "unimplemented"
+    /// Put musician at a given place and return updated state. Leave the original state unmodified
+    member this.PlaceMusician(musicianId: int, place: PointD): State =
+        let new_musician_placements = this.MusicianPlacements.SetItem(musicianId, place)
+        // TODO: signal to other fields that this musician moved so they can re-calculate stuff
+        { this with
+            MusicianPlacements = new_musician_placements
+        }
 
-let CalculateScore(state: State): Score =
-    if not(IsValid state)
-    then 0.0
-    else failwith "unimplemented"
+    /// Checks if all musicians are far enough from stage edges and each other.
+    member this.IsValid: bool =
+        failwith "unimplemented"
+
+    member this.Score: Score =
+        if not this.IsValid
+        then 0.0
+        else failwith "unimplemented"
