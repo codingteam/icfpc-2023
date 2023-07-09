@@ -337,47 +337,47 @@ type State =
         Seq.indexed this.Problem.Attendees
         |> Seq.fold
             (fun state (attendeeId, attendee) ->
-                if state.MusicianBlocksOtherForAttendee.IsSoundBlockedBetween musicianId attendeeId
-                then state
-                else if state.PillarBlocksSoundBetweenMusicianAndAttendee.IsSoundBlockedBetween musicianId attendeeId
-                then state
-                else
-                    let distance = state.MusicianAttendeeDistance.Distance musicianId attendeeId
-                    let taste = attendee.Tastes.[instrument]
-                    let this_impact = ceil(1_000_000.0 * taste / distance ** 2.0)
-                    let impact = state.MusicianAttendeeImpact.SetImpact musicianId attendeeId this_impact
-                    { state with MusicianAttendeeImpact = impact })
+                let impact =
+                    if state.MusicianBlocksOtherForAttendee.IsSoundBlockedBetween musicianId attendeeId
+                    then 0.0
+                    else if state.PillarBlocksSoundBetweenMusicianAndAttendee.IsSoundBlockedBetween musicianId attendeeId
+                    then 0.0
+                    else
+                        let distance = state.MusicianAttendeeDistance.Distance musicianId attendeeId
+                        let taste = attendee.Tastes.[instrument]
+                        ceil(1_000_000.0 * taste / distance ** 2.0)
+                let impact = state.MusicianAttendeeImpact.SetImpact musicianId attendeeId impact
+                { state with MusicianAttendeeImpact = impact })
             updatedState
 
     member private this.UpdateMusicianDistances(musicianId: int): State =
         let me = this.MusicianPlacements.[musicianId]
 
         seq { 0 .. this.MusicianPlacements.Length-1 }
+        |> Seq.filter (fun otherId -> otherId <> musicianId)
         |> Seq.fold
             (fun state otherId ->
-                if musicianId = otherId
-                then state
-                else
-                    let distance = state.MusicianPlacements.[otherId].DistanceTo(me)
-                    let distances = state.MusicianDistances.SetDistance musicianId otherId distance
-                    { state with MusicianDistances = distances })
+                let distance = state.MusicianPlacements.[otherId].DistanceTo(me)
+                let distances = state.MusicianDistances.SetDistance musicianId otherId distance
+                { state with MusicianDistances = distances })
             this
 
     member private this.UpdateMusicianClosenessFactor(musicianId: int): State =
         let state = this.UpdateMusicianDistances(musicianId)
-        if this.Problem.Pillars.Length = 0
-        then state // nothing to do -- closeness factors are not active in problems without pillars
-        else
-            let myInstrument = state.Problem.Musicians.[musicianId]
-            let sum_of_reciprocals =
-                seq { 0 .. state.Problem.Musicians.Length-1 }
-                |> Seq.filter (fun otherId -> otherId <> musicianId)
-                |> Seq.filter (fun otherId -> state.Problem.Musicians.[otherId] = myInstrument)
-                |> Seq.map (fun otherId -> 1.0 / state.MusicianDistances.Distance musicianId otherId)
-                |> Seq.sum
-            let closeness_factor = 1.0 + sum_of_reciprocals
-            let factors = state.MusicianClosenessFactor.SetClosenessFactor musicianId closeness_factor
-            { state with MusicianClosenessFactor = factors }
+        let closeness_factor =
+            if this.Problem.Pillars.Length = 0
+            then 1.0 // nothing to do -- closeness factors are not active in problems without pillars
+            else
+                let myInstrument = state.Problem.Musicians.[musicianId]
+                let sum_of_reciprocals =
+                    seq { 0 .. state.Problem.Musicians.Length-1 }
+                    |> Seq.filter (fun otherId -> otherId <> musicianId)
+                    |> Seq.filter (fun otherId -> state.Problem.Musicians.[otherId] = myInstrument)
+                    |> Seq.map (fun otherId -> 1.0 / state.MusicianDistances.Distance musicianId otherId)
+                    |> Seq.sum
+                1.0 + sum_of_reciprocals
+        let factors = state.MusicianClosenessFactor.SetClosenessFactor musicianId closeness_factor
+        { state with MusicianClosenessFactor = factors }
 
     member private this.UpdateMusicianAttendeeTotalImpact(musicianId: int): State =
         seq {
