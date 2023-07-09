@@ -39,7 +39,6 @@ let experimentalSolvers = Map [
 let improvementSolvers = Map [
     "lambda", LambdaSolver.Solve
     "derfree", DerFreeSolver.Solve
-    "derfree_hor", DerFreeSolver.SolveHorizontal
 ]
 
 let solvers = Map(Seq.concat [
@@ -195,6 +194,23 @@ let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
         let problemId = Path.GetFileNameWithoutExtension problem |> int
         solveCommand problemId solverName preserveBest
 
+let recalculateScoreCommand (problemId: int) =
+    let problem = readProblem problemId
+    match tryReadSolution problemId with
+    | Some(solution, solutionMetadata) ->
+        let updatedSolutionMetadata = {
+            Score = Scoring.CalculateScore problem solution
+            SolverName = solutionMetadata.SolverName
+        }
+        writeSolution problemId solution updatedSolutionMetadata
+    | _ -> printfn $"Problem {problemId} is not solved yet!"
+
+let recalculateScoreAllCommand () =
+    let problems = Directory.GetFiles(problemsDir, "*.json")
+    for problem in problems do
+        let problemId = Path.GetFileNameWithoutExtension problem |> int
+        recalculateScoreCommand problemId
+
 let convertIni problemFile =
     let problem = JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
     let problemId = int <| Path.GetFileNameWithoutExtension problemFile
@@ -254,15 +270,10 @@ let main(args: string[]): int =
         | _ -> printfn $"Problem {problemId} is not solved yet!"
 
     | [| "recalculate-score"; Parse(problemId) |] ->
-        let problem = readProblem problemId
-        match tryReadSolution problemId with
-        | Some(solution, solutionMetadata) ->
-            let updatedSolutionMetadata = {
-                Score = Scoring.CalculateScore problem solution
-                SolverName = solutionMetadata.SolverName
-            }
-            writeSolution problemId solution updatedSolutionMetadata
-        | _ -> printfn $"Problem {problemId} is not solved yet!"
+        recalculateScoreCommand problemId
+
+    | [| "recalculate-score"; "all" |] ->
+        recalculateScoreAllCommand()
 
     | [| "upload"; Parse(problemId) |] ->
         let token = readToken()

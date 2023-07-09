@@ -8,13 +8,13 @@ open System.Threading
 let private MusicianDeadZoneRadius = 10.0
 let private GridCellSize = MusicianDeadZoneRadius
 
-type private PartialSolution(position: PointD, instrument: int) =
+type private PartialSolution(position: PointD, volume: double, instrument: int) =
     interface IPartialSolution with
         member _.GetPlacedMusicians _ =
-            [| position, instrument |]
+            [| position, volume, instrument |]
 
-let private MakeSolutionWithSingleMusician index point =
-    PartialSolution(point, index)
+let private MakeSolutionWithSingleMusician index point volume =
+    PartialSolution(point, volume, index)
 
 let private GetMusicianIndicesPerInstrument problem: Dictionary<int, list<int>> =
     let result = Dictionary<int, list<int>>()
@@ -147,7 +147,7 @@ let FoxtranSolveV1(problem: Problem): Solution =
                 for cellX in 0 .. gridWidth - 1 do
                     for cellY in 0 .. gridHeight - 1  do
                         let cellPosition = GridCoordToPhysicalCoord problem (cellX, cellY)
-                        let solution = MakeSolutionWithSingleMusician instrument cellPosition
+                        let solution = MakeSolutionWithSingleMusician instrument cellPosition 10.0
                         let score = Scoring.CalculateNoBlockingScore problem solution
                         grid[cellX, cellY] <- score
                 let finished = Interlocked.Increment(&finishedInstruments)
@@ -194,7 +194,7 @@ let FoxtranSolveV2(problem: Problem): Solution =
                 for cellX in 0 .. gridWidth - 1 do
                     for cellY in 0 .. gridHeight - 1  do
                         let cellPosition = GridCoordToPhysicalCoord problem (cellX, cellY)
-                        let solution = MakeSolutionWithSingleMusician instrument cellPosition
+                        let solution = MakeSolutionWithSingleMusician instrument cellPosition 10.0
                         let score = Scoring.CalculateNoBlockingScore problem solution
                         grid[cellX, cellY] <- score
                 let finished = Interlocked.Increment(&finishedInstruments)

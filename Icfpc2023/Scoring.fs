@@ -6,11 +6,12 @@ type ClosenessFactor = double
 type private Musician = {
     Instrument: int
     Location: PointD
+    Volume: double
 }
 
 let private CalculateAttendeeMusicianScore(attendee: Attendee, musician: Musician, closeness: ClosenessFactor): Score =
     let d_squared = (attendee.X - musician.Location.X) ** 2.0 + (attendee.Y - musician.Location.Y) ** 2.0
-    ceil(closeness * 1_000_000.0 * attendee.Tastes[musician.Instrument] / d_squared)
+    musician.Volume * ceil(closeness * 1_000_000.0 * attendee.Tastes[musician.Instrument] / d_squared)
 
 let private AnyOtherMusicianBlocksSound (musicians: Musician[]) (attendee: Attendee) (mIndex: int): bool =
     let musician = PointD(musicians[mIndex].Location.X, musicians[mIndex].Location.Y)
@@ -88,9 +89,8 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
     else
 
     let musicians =
-        problem.Musicians
-        |> Seq.zip solution.Placements
-        |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
+        Seq.zip3 problem.Musicians solution.Placements solution.Volumes
+        |> Seq.map(fun(i, p, v) -> { Instrument = i; Location = p; Volume = v })
         |> Seq.toArray
     let closeness_factors =
         if problem.Pillars.Length > 0
@@ -110,6 +110,6 @@ let CalculateScore(problem: Problem) (solution: Solution): Score =
 let CalculateNoBlockingScore(problem: Problem) (solution: IPartialSolution): Score =
     let musicians =
         solution.GetPlacedMusicians problem.Musicians
-        |> Seq.map(fun(p, i) -> { Instrument = i; Location = p })
+        |> Seq.map(fun(p, v, i) -> { Instrument = i; Location = p; Volume = v })
         |> Seq.toArray
     problem.Attendees |> Array.sumBy(CalculateAttendeeNoBlockingScore musicians)
