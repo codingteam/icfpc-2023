@@ -294,3 +294,19 @@ let ``CalculateScore for problem 30``(): unit =
     let score = Scoring.CalculateScore problem solution
     let meta = JsonDefs.ReadSolutionMetadataFromFile(Path.Combine(DirectoryLookup.solutionsDir, "30.meta.json"))
     Assert.Equal(meta.Score, score)
+
+[<Fact>]
+let ``IterativeScoring takes pillars into account (problem 85)`` () =
+    let solDir = DirectoryLookup.solutionDirectory
+
+    let problemDef = Path.Combine(solDir, "problems", "85.json")
+    let problem = JsonDefs.ReadProblemFromFile problemDef
+
+    let solutionDef = Path.Combine(solDir, "solutions", "85.json")
+    let solution = JsonDefs.ReadSolutionFromFile solutionDef
+
+    let ordinaryScore = CalculateScore problem solution
+    let state = State.Create(problem, solution.Placements, solution.Volumes)
+    let iterativeScore = state.Score
+
+    Assert.Equal(ordinaryScore, iterativeScore)
