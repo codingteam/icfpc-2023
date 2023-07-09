@@ -4,11 +4,29 @@ open System.Collections.Immutable
 
 type private MusicianPlacements = PointD[]
 
+type MusicianAttendeeDistance =
+    {
+        MusiciansCount: int
+        AttendeesCount: int
+        Distances: ImmutableArray<double>
+    }
+
+    static member zeroCreate(musiciansCount: int) (attendeesCount: int): MusicianAttendeeDistance =
+        let elements_count = musiciansCount * attendeesCount
+        let distances = (Array.zeroCreate elements_count).ToImmutableArray()
+        {
+            MusiciansCount = musiciansCount
+            AttendeesCount = attendeesCount
+            Distances = distances
+        }
+
+    // TODO: implement getter/setter with indexing
+
 type State =
     {
         Problem: Problem
         MusicianPlacements: ImmutableArray<PointD> // [0]
-        MusicianAttendeeDistance: ImmutableArray<ImmutableArray<double>> // [1]
+        MusicianAttendeeDistance: MusicianAttendeeDistance // [1]
 
         // TODO: add a 3D matrix of musician-musician-attendee bools indicating if the first musician blocks the second musician's sound for this attendee -- depends on 0. [6]
 
@@ -34,7 +52,7 @@ type State =
             {
                 Problem = problem
                 MusicianPlacements = musician_placements.ToImmutableArray()
-                MusicianAttendeeDistance = musician_attendee_distance
+                MusicianAttendeeDistance = MusicianAttendeeDistance.zeroCreate problem.Musicians.Length problem.Attendees.Length
             }
         Seq.indexed musician_placements
         |> Seq.fold (fun state (i, position) -> state.PlaceMusician(i, position)) initialState
