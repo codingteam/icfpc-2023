@@ -7,7 +7,7 @@ from scoring import *
 from domain import *
 
 
-def initial_solution(scene: Scene, n_musicians, sigmas) -> np.ndarray:
+def initial_solution(scene: Stage, n_musicians, sigmas) -> np.ndarray:
     center = [scene.x + 0.5 * scene.w, scene.y + 0.5 * scene.h, 10.0]
     r = np.random.normal(center, sigmas, (n_musicians, 3))
     r[r[:, 2] > 10, 2] = 10
@@ -15,7 +15,7 @@ def initial_solution(scene: Scene, n_musicians, sigmas) -> np.ndarray:
     return r
 
 
-def ES_solve(scene: Scene,
+def ES_solve(scene: Stage,
              mus_instruments: np.ndarray,
              att_places: np.ndarray,
              att_tastes: np.ndarray,

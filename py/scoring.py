@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from domain import Scene
+from domain import Stage
 
 
 # from numba import *
@@ -138,7 +138,7 @@ def mc_score(mus_instruments: np.ndarray,
     return score_sum / n_eval / mus_ratio / att_ratio
 
 
-def musicians_out_of_scene_penalty(scene: Scene, mus_places_volumes: np.ndarray) -> float:
+def musicians_out_of_scene_penalty(scene: Stage, mus_places_volumes: np.ndarray) -> float:
     radius = 10
     mus_places = mus_places_volumes[:, 0:2] if mus_places_volumes.shape[1] == 3 else mus_places_volumes
     left_bound = scene.x + radius
@@ -164,6 +164,6 @@ def musicians_distance_penalty(mus_places_volumes: np.ndarray) -> float:
     return penalty
 
 
-def placing_valid(scene: Scene, mus_places_volumes: np.ndarray) -> bool:
+def placing_valid(scene: Stage, mus_places_volumes: np.ndarray) -> bool:
     return musicians_out_of_scene_penalty(scene, mus_places_volumes) <= 0 and musicians_distance_penalty(
         mus_places_volumes) <= 0
