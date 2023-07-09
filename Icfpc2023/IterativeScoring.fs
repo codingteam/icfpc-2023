@@ -37,36 +37,49 @@ type MusicianBlocks =
     {
         MusiciansCount: int
         AttendeesCount: int
-        Blocks: ImmutableArray<bool>
+        Blocks: ImmutableArray<ImmutableArray<ImmutableArray<bool>>>
     }
 
     static member Create(musiciansCount: int) (attendeesCount: int): MusicianBlocks =
-        let elements_count = musiciansCount * musiciansCount * attendeesCount
-        let blocks = (Array.zeroCreate elements_count).ToImmutableArray()
+        let innermost =
+            let builder = ImmutableArray.CreateBuilder<bool>()
+            for _ in 0 .. musiciansCount-1 do
+                builder.Add(false)
+            builder.ToImmutable()
+        let inner =
+            let builder = ImmutableArray.CreateBuilder<ImmutableArray<bool>>()
+            for _ in 0 .. attendeesCount-1 do
+                builder.Add(innermost)
+            builder.ToImmutable()
+        let blocks =
+            let builder = ImmutableArray.CreateBuilder<ImmutableArray<ImmutableArray<bool>>>()
+            for _ in 0 .. musiciansCount-1 do
+                builder.Add(inner)
+            builder.ToImmutable()
         {
             MusiciansCount = musiciansCount
             AttendeesCount = attendeesCount
             Blocks = blocks
         }
 
-    member private this.GetIndex(blockingMusicianId: int) (blockedMusicianId: int) (attendeeId: int): int =
-        (
-            blockingMusicianId * this.MusiciansCount
-            + blockedMusicianId
-        ) * this.AttendeesCount
-        + attendeeId
+    member private this.Blocked(blockingMusicianId: int) (blockedMusicianId: int) (attendeeId: int): bool =
+        this.Blocks.[blockedMusicianId].[attendeeId].[blockingMusicianId]
 
     member this.SetBlocks(blockingMusicianId: int) (blockedMusicianId: int) (attendeeId: int) (blocks: bool): MusicianBlocks =
-        let index = this.GetIndex blockingMusicianId blockedMusicianId attendeeId
-        if blocks <> this.Blocks.[index]
-        then { this with Blocks = this.Blocks.SetItem(index, blocks) }
+        if blocks <> this.Blocked blockingMusicianId blockedMusicianId attendeeId
+        then
+            let innermost =
+                this.Blocks.[blockedMusicianId].[attendeeId].SetItem(blockingMusicianId, blocks)
+            let inner =
+                this.Blocks.[blockedMusicianId].SetItem(attendeeId, innermost)
+            let blocks =
+                this.Blocks.SetItem(blockedMusicianId, inner)
+            { this with Blocks = blocks }
         else this
 
     member this.IsSoundBlockedBetween(blockedMusicianId: int) (attendeeId: int): bool =
-        { 0 .. this.MusiciansCount-1 }
-        |> Seq.exists (fun blockingMusicianId ->
-                let index = this.GetIndex blockingMusicianId blockedMusicianId attendeeId
-                this.Blocks[index])
+        this.Blocks.[blockedMusicianId].[attendeeId]
+        |> Seq.exists id
 
 type PillarsBlocks =
     {
