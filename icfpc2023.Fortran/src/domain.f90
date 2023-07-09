@@ -134,8 +134,8 @@ contains
     write(LU, "(A)") "[musicians]"
     write(LU, "(I0)") this%N_musicians
     do i = 1, this%N_musicians
-      write(LU, "(F12.6,A,F12.6,A,I0,A,I0)") this%musicians(i)%pos%x, " ", this%musicians(i)%pos%y, " ", &
-                                             this%musicians(i)%instrument, " ", this%musicians(i)%volume
+      write(LU, "(F12.6,A,F12.6,A,I0,A,F5.2)") this%musicians(i)%pos%x, " ", this%musicians(i)%pos%y, " ", &
+                                               this%musicians(i)%instrument, " ", this%musicians(i)%volume
     end do
     close(LU)
   end subroutine room_dump

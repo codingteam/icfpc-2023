@@ -15,7 +15,7 @@ program main
   print *, "Old: ", e1
   print *, "New: ", e2
   print "(A,F15.2,A,F8.2,A)", "Improvement: ", e2-e1, "; ", (e2-e1)/abs(e1)*100, "%"
-  if (e2 > e1) then
+  if (e2 > e1 .or. .true.) then
     call room%dump(trim(filename)//".new", "FoxtranForV2")
   end if
 end program main
