@@ -324,19 +324,21 @@ let lambda_deriv(M: PointD[], problem: Problem, lambda: double) =
   musicianDeriv
 
 
-let lambdas = [0.01; 0.5; 1; 5; 10; 50; 100; 200; 500; 1000]
+let private lambdas = [0.01; 0.5; 1; 5; 10; 50; 100; 200; 500; 1000]
 
-let pointsToArray (points: PointD[]) =
+let private pointsToArray (points: PointD[]) =
     points
     |> Seq.map (fun p -> [| p.X; p.Y |])
     |> Seq.collect id
     |> Seq.toArray
 
-let arrayToPoints (array: double[]) =
+let private arrayToPoints (array: double[]) =
     array
     |> Seq.chunkBySize 2
     |> Seq.map (fun [| x; y |] -> PointD(x, y))
     |> Seq.toArray
+
+let private MusicianDeadZoneRadius = 10.0
 
 let Solve(problem: Problem): Solution =
     printfn $"λ: Computing initial solution..."
@@ -358,13 +360,13 @@ let Solve(problem: Problem): Solution =
 
         let lowerBounds = method.LowerBounds
         for i = 0 to initialSolution.Placements.Length - 1 do
-            lowerBounds[i*2] <- problem.StageBottomLeft.X
-            lowerBounds[i*2 + 1] <- problem.StageBottomLeft.Y
+            lowerBounds[i*2] <- problem.StageBottomLeft.X + MusicianDeadZoneRadius
+            lowerBounds[i*2 + 1] <- problem.StageBottomLeft.Y + MusicianDeadZoneRadius
 
         let upperBounds = method.UpperBounds
         for i = 0 to initialSolution.Placements.Length - 1 do
-            upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth
-            upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight
+            upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
+            upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight - MusicianDeadZoneRadius
 
         let success = method.Maximize(solution)
         printfn $"λ: Converged? {success}, status {method.Status}"

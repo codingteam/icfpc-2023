@@ -42,6 +42,7 @@ let nondeterministicSolvers = Map [
 
 let experimentalSolvers = Map [
     "lambda", LambdaSolver.Solve
+    "derfree", DerFreeSolver.Solve
 ]
 
 let solvers = Map(Seq.concat [
