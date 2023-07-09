@@ -125,28 +125,28 @@ type MusicianAttendeeImpact =
 type MusicianDistanceWithSameInstrument =
     {
         MusiciansCount: int
-        AttendeesCount: int
         Distances: ImmutableArray<double>
     }
 
-    static member zeroCreate(musiciansCount: int) (attendeesCount: int): MusicianDistanceWithSameInstrument =
-        let elements_count = musiciansCount * attendeesCount
+    static member zeroCreate(musiciansCount: int): MusicianDistanceWithSameInstrument =
+        let elements_count = musiciansCount * musiciansCount
         let distances = (Array.zeroCreate elements_count).ToImmutableArray()
         {
             MusiciansCount = musiciansCount
-            AttendeesCount = attendeesCount
             Distances = distances
         }
 
-    member private this.GetIndex(musicianId: int) (attendeeId: int): int =
-        musicianId * this.MusiciansCount + attendeeId
+    member private this.GetIndex(fromId: int) (toId: int): int =
+        if fromId > toId
+        then fromId * this.MusiciansCount + toId
+        else toId * this.MusiciansCount + fromId
 
-    member this.SetDistance(musicianId: int) (attendeeId: int) (distance: double): MusicianDistanceWithSameInstrument =
-        let index = this.GetIndex musicianId attendeeId
+    member this.SetDistance(fromMusicianId: int) (toMusicianId: int) (distance: double): MusicianDistanceWithSameInstrument =
+        let index = this.GetIndex fromMusicianId toMusicianId
         { this with Distances = this.Distances.SetItem(index, distance) }
 
-    member this.Distance(musicianId: int) (attendeeId: int): double =
-        let index = this.GetIndex musicianId attendeeId
+    member this.Distance(fromMusicianId: int) (toMusicianId: int): double =
+        let index = this.GetIndex fromMusicianId toMusicianId
         this.Distances[index]
 
 type MusicianClosenessFactor =
@@ -258,7 +258,7 @@ type State =
                 MusicianBlocksOtherForAttendee = MusicianBlocks.Create problem.Musicians.Length problem.Attendees.Length
                 PillarBlocksSoundBetweenMusicianAndAttendee = PillarsBlocks.Create problem.Musicians.Length problem.Attendees.Length problem.Pillars.Length
                 MusicianAttendeeImpact = MusicianAttendeeImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
-                MusicianDistanceWithSameInstrument = MusicianDistanceWithSameInstrument.zeroCreate problem.Musicians.Length problem.Attendees.Length
+                MusicianDistanceWithSameInstrument = MusicianDistanceWithSameInstrument.zeroCreate problem.Musicians.Length
                 MusicianClosenessFactor = MusicianClosenessFactor.Create problem.Musicians.Length
                 MusicianAttendeeTotalImpact = MusicianAttendeeTotalImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
             }
