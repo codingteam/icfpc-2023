@@ -259,7 +259,7 @@ type State =
                     |> Seq.fold
                         (fun curBlocks (otherId, otherMusician) ->
                             let isBlocked = blockZone.Contains otherMusician
-                            curBlocks.SetBlocks musicianId otherId attendeeId isBlocked)
+                            curBlocks.SetBlocks otherId musicianId attendeeId isBlocked)
                         state.MusicianBlocksOtherForAttendee
                 { state with MusicianBlocksOtherForAttendee = blocks})
             this
@@ -316,8 +316,11 @@ type State =
                 .UpdateMusicianAttendeeImpact(musicianId)
                 .UpdateMusicianClosenessFactor(musicianId)
 
-        seq { 0 .. state.Problem.Musicians.Length-1 }
-        |> Seq.zip { 0 .. state.Problem.Attendees.Length-1 }
+        seq {
+            for musicianId in 0 .. state.Problem.Musicians.Length-1 do
+                for attendeeId in 0 .. state.Problem.Attendees.Length-1 ->
+                    (musicianId, attendeeId)
+        }
         |> Seq.fold
             (fun state (musicianId, attendeeId) ->
                 let closeness = state.MusicianClosenessFactor.ClosenessFactor musicianId
