@@ -58,6 +58,24 @@ type MusicianAttendeeImpact =
 
     // TODO: implement getter/setter with indexing
 
+type MusicianDistanceWithSameInstrument =
+    {
+        MusiciansCount: int
+        AttendeesCount: int
+        Distance: ImmutableArray<double>
+    }
+
+    static member zeroCreate(musiciansCount: int) (attendeesCount: int): MusicianDistanceWithSameInstrument =
+        let elements_count = musiciansCount * attendeesCount
+        let distance = (Array.zeroCreate elements_count).ToImmutableArray()
+        {
+            MusiciansCount = musiciansCount
+            AttendeesCount = attendeesCount
+            Distance = distance
+        }
+
+    // TODO: implement getter/setter with indexing
+
 type State =
     {
         Problem: Problem
@@ -65,8 +83,7 @@ type State =
         MusicianAttendeeDistance: MusicianAttendeeDistance // [1]
         MusicianBlocksOtherForAttendee: MusicianBlocks // [6]
         MusicianAttendeeImpact: MusicianAttendeeImpact // [2]
-
-        // TODO: add a matrix of distances from each musician to each other musician playing the same instrument -- depends on 0. [3]
+        MusicianDistanceWithSameInstrument: MusicianDistanceWithSameInstrument // [3]
 
         // TODO: add a vector of closeness factor (length == number of musicians) -- depends on 3. [4]
 
@@ -90,6 +107,9 @@ type State =
                 .UpdateMusicianBlocks(musicianId)
         failwith "unimplemented"
 
+    member private this.UpdateMusicianDistanceToSameInstrument(musicianId: int): State =
+        failwith "unimplemented"
+
     static member Create(problem: Problem, musician_placements: PointD[]): State =
         let musician_attendee_distance =
             let builder = ImmutableArray.CreateBuilder<ImmutableArray<double>>()
@@ -103,6 +123,7 @@ type State =
                 MusicianAttendeeDistance = MusicianAttendeeDistance.zeroCreate problem.Musicians.Length problem.Attendees.Length
                 MusicianBlocksOtherForAttendee = MusicianBlocks.Create problem.Musicians.Length problem.Attendees.Length
                 MusicianAttendeeImpact = MusicianAttendeeImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
+                MusicianDistanceWithSameInstrument = MusicianDistanceWithSameInstrument.zeroCreate problem.Musicians.Length problem.Attendees.Length
             }
         Seq.indexed musician_placements
         |> Seq.fold (fun state (i, position) -> state.PlaceMusician(i, position)) initialState
@@ -112,6 +133,7 @@ type State =
         this
             .UpdateMusicianPlacement(musicianId, place)
             .UpdateMusicianAttendeeImpact(musicianId)
+            .UpdateMusicianDistanceToSameInstrument(musicianId)
         // TODO: signal to other fields that this musician moved so they can re-calculate stuff
 
     /// Checks if all musicians are far enough from stage edges and each other.
