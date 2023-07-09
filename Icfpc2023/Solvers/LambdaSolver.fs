@@ -375,21 +375,13 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
     for lambda in lambdas do
         printfn $"λ: Current λ parameter: {lambda}"
         let objective = fun point -> lambda_score(arrayToPoints point, problem, lambda)
+        let gradient = fun point -> lambda_deriv(arrayToPoints point, problem, lambda) |> pointsToArray
 
         let method =
-            NelderMead(
+            BroydenFletcherGoldfarbShanno(
                 numberOfVariables = initialGuess.Length,
-                ``function`` = objective)
-
-        let lowerBounds = method.LowerBounds
-        for i = 0 to problem.Musicians.Length - 1 do
-            lowerBounds[i*2] <- problem.StageBottomLeft.X + MusicianDeadZoneRadius
-            lowerBounds[i*2 + 1] <- problem.StageBottomLeft.Y + MusicianDeadZoneRadius
-
-        let upperBounds = method.UpperBounds
-        for i = 0 to problem.Musicians.Length - 1 do
-            upperBounds[i*2] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
-            upperBounds[i*2 + 1] <- problem.StageBottomLeft.Y + problem.StageHeight - MusicianDeadZoneRadius
+                ``function`` = objective,
+                gradient = gradient)
 
         let success = method.Maximize(solution)
         printfn $"λ: Converged? {success}, status {method.Status}"
