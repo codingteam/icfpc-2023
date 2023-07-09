@@ -217,12 +217,6 @@ contains
         Tma(:,i) = Tma(:,i) * Dm
       end do
       energy = sum(ceiling(1e6_8 * Tma * Dma * Bma, kind=8))
-      energy = 0.0
-      do i = 1, this%N_attendees
-        do j = 1, this%N_musicians
-          energy = energy + ceiling(Dm(j) * ceiling(1e6_8 * Tma(j, i) * Dma(j, i) * Bma(j, i)))
-        end do
-      end do
     end if
     energy = energy + this%error()
   end function room_score
