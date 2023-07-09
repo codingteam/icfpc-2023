@@ -28,7 +28,7 @@ type Problem =
         this.Pillars.Length > 0
 
 type IPartialSolution =
-    abstract member GetPlacedMusicians: allMusicians: int[] -> seq<PointD * int>
+    abstract member GetPlacedMusicians: allMusicians: int[] -> seq<PointD * double * int>
 
 type Solution =
     {
@@ -37,11 +37,10 @@ type Solution =
     }
     interface IPartialSolution with
         member this.GetPlacedMusicians allMusicians =
-            allMusicians
-            |> Seq.zip this.Placements
+            Seq.zip3 this.Placements this.Volumes allMusicians
 
 module Solution =
-    let defaultVolumes numOfMusicians = Array.replicate numOfMusicians 1.0
+    let defaultVolumes numOfMusicians = Array.replicate numOfMusicians 10.0
 
 type Score = double
 type SolverName = string

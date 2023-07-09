@@ -1,6 +1,7 @@
 open System
 open System.IO
 open System.Text
+open System.Threading
 open System.Threading.Tasks
 
 open Icfpc2023
@@ -39,7 +40,6 @@ let experimentalSolvers = Map [
 let improvementSolvers = Map [
     "lambda", LambdaSolver.Solve
     "derfree", DerFreeSolver.Solve
-    "derfree_hor", DerFreeSolver.SolveHorizontal
 ]
 
 let solvers = Map(Seq.concat [
@@ -195,6 +195,27 @@ let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
         let problemId = Path.GetFileNameWithoutExtension problem |> int
         solveCommand problemId solverName preserveBest
 
+let recalculateScoreCommand (problemId: int) =
+    let problem = readProblem problemId
+    match tryReadSolution problemId with
+    | Some(solution, solutionMetadata) ->
+        let updatedSolutionMetadata = {
+            Score = Scoring.CalculateScore problem solution
+            SolverName = solutionMetadata.SolverName
+        }
+        writeSolution problemId solution updatedSolutionMetadata
+    | _ -> printfn $"Problem {problemId} is not solved yet!"
+
+let recalculateScoreAllCommand () =
+    let problems = Directory.GetFiles(problemsDir, "*.json")
+    let mutable finished = 0
+    Parallel.ForEach(problems, fun (problem: string) ->
+        let problemId = Path.GetFileNameWithoutExtension problem |> int
+        recalculateScoreCommand problemId
+        let res = Interlocked.Increment(&finished)
+        printfn $"Finished {res} / {problems.Length} problems"
+    ) |> ignore
+
 let convertIni problemFile =
     let problem = JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
     let problemId = int <| Path.GetFileNameWithoutExtension problemFile
@@ -254,15 +275,10 @@ let main(args: string[]): int =
         | _ -> printfn $"Problem {problemId} is not solved yet!"
 
     | [| "recalculate-score"; Parse(problemId) |] ->
-        let problem = readProblem problemId
-        match tryReadSolution problemId with
-        | Some(solution, solutionMetadata) ->
-            let updatedSolutionMetadata = {
-                Score = Scoring.CalculateScore problem solution
-                SolverName = solutionMetadata.SolverName
-            }
-            writeSolution problemId solution updatedSolutionMetadata
-        | _ -> printfn $"Problem {problemId} is not solved yet!"
+        recalculateScoreCommand problemId
+
+    | [| "recalculate-score"; "all" |] ->
+        recalculateScoreAllCommand()
 
     | [| "upload"; Parse(problemId) |] ->
         let token = readToken()

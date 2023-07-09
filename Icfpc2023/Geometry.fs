@@ -1,5 +1,7 @@
 namespace Icfpc2023
 
+open System
+
 [<Struct>]
 type PointD =
     | PointD of double * double
@@ -31,6 +33,8 @@ type Line =
 
         abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt((x2 - x1) ** 2.0 + (y2 - y1) ** 2)
 
+#nowarn "3391"
+
 [<Struct>]
 type Rectangle =
     {
@@ -40,6 +44,7 @@ type Rectangle =
     }
     member private this.UpperRight: PointD =
         this.BottomLeft + PointD(this.Width, this.Height)
+
     member this.Contains(p: PointD): bool =
         let (PointD(x, y)) = p
         let (PointD(x0, y0)) = this.BottomLeft
@@ -101,3 +106,50 @@ type Stadium =
         // doesn't exceed the length of the segment
         let segment_length = this.Center1.DistanceTo(this.Center2)
         closest.DistanceTo(this.Center1) < segment_length && closest.DistanceTo(this.Center2) < segment_length
+
+    static member NormalizeVector(v: PointD): PointD =
+        let (PointD(x, y)) = v
+        let length = sqrt(x ** 2.0 + y ** 2.0)
+        PointD(x / length, y / length)
+
+    static member RotateVector (radians: double) (v: PointD): PointD =
+        let (PointD(x, y)) = v
+        let cos = cos radians
+        let sin = sin radians
+        PointD(x * cos - y * sin, x * sin + y * cos)
+
+    // https://stackoverflow.com/a/18292964/2684760
+    static member LineIntersectsRect(struct(a, b), rect: Rectangle): bool =
+        let (PointD(x1, y1)) = a
+        let (PointD(x2, y2)) = b
+
+        let minX = rect.BottomLeft.X
+        let maxX = rect.BottomLeft.X + rect.Width
+        let minY = rect.BottomLeft.Y
+        let maxY = rect.BottomLeft.Y + rect.Height
+
+        let k = (y2 - y1) / (x2 - x1)
+        let y = k * (minX - x1) + y1
+        if y > minY && y < maxY then true
+        else
+            let y = k * (maxX - x1) + y1
+            if y > minY && y < maxY then true
+            else
+                let x = (minY - y1) / k + x1
+                if x > minX && x < maxX then true
+                else
+                    let x = (maxY - y1) / k + x1
+                    if x > minX && x < maxX then true
+                    else false
+
+    member this.RectangularPartIntersectsWith(rect: Rectangle): bool =
+        let radiusVector = Stadium.NormalizeVector(this.Center2 - this.Center1) * this.Radius
+        let line1 = struct (
+            this.Center1 + Stadium.RotateVector(Math.PI / 2.0) radiusVector,
+            this.Center2 + Stadium.RotateVector(Math.PI / 2.0) radiusVector
+        )
+        let line2 = struct (
+            this.Center1 - Stadium.RotateVector(Math.PI / 2.0) radiusVector,
+            this.Center2 - Stadium.RotateVector(Math.PI / 2.0) radiusVector
+        )
+        Stadium.LineIntersectsRect(line1, rect) || Stadium.LineIntersectsRect(line2, rect)

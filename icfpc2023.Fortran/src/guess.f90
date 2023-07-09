@@ -85,12 +85,32 @@ contains
     end do
     musician%volume = 1._8
     do instr = 1, room%N_instruments
+      write(6, "(A,I0,A,I0,A)", advance="no") "Layer ", instr, " of ", room%N_instruments, repeat(" ", 20) // char(13)
+      flush(6)
       musician%instrument = instr
       do i = 1, size(grid(instr)%skip)
         musician%pos = grid(instr)%pos(i)
         room%musicians(1) = musician
-        grid(instr)%value = room%score()
+        grid(instr)%value(i) = room%score()
       end do
+    end do
+    do layer = 1, room%N_instruments
+      write(6, "(A,I0,A,I0,A)", advance="no") "Layer ", layer, " of ", room%N_instruments, repeat(" ", 20) // char(13)
+      flush(6)
+      max_pos = maxloc(grid(layer)%value)
+      call additional%generate_grid(max(minx, grid(layer)%pos(max_pos(1))%x - 10._8), &
+                                    min(maxx, grid(layer)%pos(max_pos(1))%x + 10._8), &
+                                    max(miny, grid(layer)%pos(max_pos(1))%y - 10._8), &
+                                    min(maxy, grid(layer)%pos(max_pos(1))%y + 10._8), &
+                                    "rectangular", 0.25_8)
+      musician%instrument = layer
+      do i = 1, size(additional%skip)
+        musician%pos = additional%pos(i)
+        room%musicians(1) = musician
+        additional%value(i) = room%score()
+      end do
+      call grid(layer)%merge(additional)
+      call additional%dealloc
     end do
     do t = 1, room%N_musicians
       layer = order(t)

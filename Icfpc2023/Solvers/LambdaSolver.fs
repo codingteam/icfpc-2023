@@ -363,20 +363,21 @@ let private arrayToPoints (array: double[]) =
 
 let private MusicianDeadZoneRadius = 10.0
 
-let Solve (initialSolution: Solution option) (problem: Problem): Solution =
-    let initialGuess =
-        match initialSolution with
+let Solve (initialSolutionOpt: Solution option) (problem: Problem): Solution =
+    let initialSolution =
+        match initialSolutionOpt with
         | Some solution ->
             let initialScore = Scoring.CalculateScore problem solution
             printfn $"λ: Initial score: {initialScore}"
-            solution.Placements |> pointsToArray
+            solution
         | None ->
             printfn $"λ: Computing initial solution (foxtranV1)..."
             let initialSolution = FoxtranSolver.FoxtranSolveV1(problem)
             let initialScore = Scoring.CalculateScore problem initialSolution
             printfn $"λ: Initial score: {initialScore}"
-            initialSolution.Placements |> pointsToArray
+            initialSolution
 
+    let initialGuess = initialSolution.Placements |> pointsToArray
 (*
     let res = lambda_score(arrayToPoints initialGuess, problem, 1000)
     let deriv = lambda_score_MiMj_deriv_Mj(PointD(8, 0), PointD(0, 0))
@@ -429,7 +430,4 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
         }
         printfn $"λ: Current score: {score}"
 
-    {
-        Placements = solution |> arrayToPoints
-        Volumes = Solution.defaultVolumes problem.Musicians.Length
-    }
+    { initialSolution with Placements = solution |> arrayToPoints }

@@ -8,7 +8,7 @@ PROBLEMS_DIR = '../problems/'
 
 
 def read_problem(id) -> ProblemData:
-    with open(f"${PROBLEMS_DIR}/${id}.json", 'r') as f:
+    with open(f"{PROBLEMS_DIR}/{id}.json", 'r') as f:
         js = json.load(f)
 
         mus_instruments = np.array(js["musicians"])
@@ -43,21 +43,21 @@ def write_solution(id, solution: np.ndarray):
 
     for i in range(n_mus):
         placements.append(dict(x=solution[i, 0], y=solution[i, 1]))
-        volumes.append(mus_volumes[i] if mus_volumes else 10.0)
+        volumes.append(mus_volumes[i] if mus_volumes is not None else 10.0)
 
     js = dict(placements=placements, volumes=volumes)
 
-    with open(f"${SOLUTIONS_DIR}/${id}.meta.json", 'w') as f:
+    with open(f"{SOLUTIONS_DIR}/{id}.json", 'w') as f:
         json.dump(js, f)
 
 
 def read_metadata(id) -> SolutionMetadata:
-    with open(f"${SOLUTIONS_DIR}/${id}.meta.json", 'r') as f:
+    with open(f"{SOLUTIONS_DIR}/{id}.meta.json", 'r') as f:
         js = json.load(f)
         return SolutionMetadata(score=js["score"], solver=js["solver"])
 
 
 def write_metadata(id, score: int):
-    with open(f"${SOLUTIONS_DIR}/${id}.meta.json", 'w') as f:
+    with open(f"{SOLUTIONS_DIR}/{id}.meta.json", 'w') as f:
         js = {"score": score, "solver": "ES"}
         json.dump(js, f)
