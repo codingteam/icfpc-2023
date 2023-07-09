@@ -55,9 +55,23 @@ let solvers = Map(Seq.concat [
         Map.toSeq nondeterministicSolvers
     ])
 
+let inline (.+) (xs: 'T[]) (ys: 'T[]) =
+    (xs, ys) ||> Array.map2 (fun x y -> x + y)
+
+let postProcessProblem (problem: Problem) =
+    let processedAttendees =
+        problem.Attendees
+        |> Seq.groupBy (fun attendee -> attendee.X, attendee.Y)
+        |> Seq.map (fun (pos, attendees) -> pos, attendees |> Seq.map (fun a -> a.Tastes))
+        |> Seq.map (fun (pos, tastesSeq) -> pos, tastesSeq |> Seq.reduce (.+))
+        |> Seq.map (fun ((x, y), tastes) -> { X = x; Y = y; Tastes = tastes })
+        |> Seq.toArray
+
+    { problem with Attendees = processedAttendees }
+
 let readProblem (problemId: int) =
     let problemFile = Path.Combine(problemsDir, $"{problemId}.json")
-    JsonDefs.ReadProblemFromFile problemFile
+    JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
 
 let tryReadSolution (problemId: int): (Solution * SolutionMetadata) option =
     let solutionFile = Path.Combine(solutionsDir, $"{problemId}.json")
@@ -144,7 +158,7 @@ let solveAllCommand (solverName: SolverName) (preserveBest: bool) =
         solveCommand problemId solverName preserveBest
 
 let convertIni problemFile =
-    let problem = JsonDefs.ReadProblemFromFile problemFile
+    let problem = JsonDefs.ReadProblemFromFile problemFile |> postProcessProblem
     let problemId = int <| Path.GetFileNameWithoutExtension problemFile
     let solution =
         tryReadSolution problemId
