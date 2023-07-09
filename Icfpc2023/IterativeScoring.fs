@@ -122,13 +122,13 @@ type MusicianAttendeeImpact =
         let index = this.GetIndex musicianId attendeeId
         this.Impacts[index]
 
-type MusicianDistanceWithSameInstrument =
+type MusicianDistances =
     {
         MusiciansCount: int
         Distances: ImmutableArray<double>
     }
 
-    static member zeroCreate(musiciansCount: int): MusicianDistanceWithSameInstrument =
+    static member zeroCreate(musiciansCount: int): MusicianDistances =
         let elements_count = musiciansCount * musiciansCount
         let distances = (Array.zeroCreate elements_count).ToImmutableArray()
         {
@@ -141,13 +141,16 @@ type MusicianDistanceWithSameInstrument =
         then fromId * this.MusiciansCount + toId
         else toId * this.MusiciansCount + fromId
 
-    member this.SetDistance(fromMusicianId: int) (toMusicianId: int) (distance: double): MusicianDistanceWithSameInstrument =
+    member this.SetDistance(fromMusicianId: int) (toMusicianId: int) (distance: double): MusicianDistances =
         let index = this.GetIndex fromMusicianId toMusicianId
         { this with Distances = this.Distances.SetItem(index, distance) }
 
     member this.Distance(fromMusicianId: int) (toMusicianId: int): double =
         let index = this.GetIndex fromMusicianId toMusicianId
         this.Distances[index]
+
+    member this.HasDistancesUnder(limit: double): bool =
+        this.Distances |> Seq.exists (fun (d) -> d < limit)
 
 type MusicianClosenessFactor =
     {
@@ -203,7 +206,7 @@ type State =
         MusicianBlocksOtherForAttendee: MusicianBlocks
         PillarBlocksSoundBetweenMusicianAndAttendee: PillarsBlocks
         MusicianAttendeeImpact: MusicianAttendeeImpact
-        MusicianDistanceWithSameInstrument: MusicianDistanceWithSameInstrument
+        MusicianDistances: MusicianDistances
         MusicianClosenessFactor: MusicianClosenessFactor
         MusicianAttendeeTotalImpact: MusicianAttendeeTotalImpact
     }
@@ -265,7 +268,7 @@ type State =
                 MusicianBlocksOtherForAttendee = MusicianBlocks.Create problem.Musicians.Length problem.Attendees.Length
                 PillarBlocksSoundBetweenMusicianAndAttendee = PillarsBlocks.Create problem.Musicians.Length problem.Attendees.Length problem.Pillars.Length
                 MusicianAttendeeImpact = MusicianAttendeeImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
-                MusicianDistanceWithSameInstrument = MusicianDistanceWithSameInstrument.zeroCreate problem.Musicians.Length
+                MusicianDistances = MusicianDistances.zeroCreate problem.Musicians.Length
                 MusicianClosenessFactor = MusicianClosenessFactor.Create problem.Musicians.Length
                 MusicianAttendeeTotalImpact = MusicianAttendeeTotalImpact.zeroCreate problem.Musicians.Length problem.Attendees.Length
             }
@@ -294,8 +297,7 @@ type State =
         then false
         else
 
-        // TODO: check if musicians are far enough from each other
-        failwith "unimplemented"
+        not(this.MusicianDistances.HasDistancesUnder(10.0))
 
     /// Score for this solution.
     member this.Score: Score =

@@ -58,8 +58,30 @@ let ``IterativeScoring state is invalid if some musician is too close to the edg
                 |]
             Pillars = [||]
         }
-    let musician_placements = [| PointD(1.0, 1.0) |]
 
-    let state = State.Create(problem, musician_placements)
+    let state = State.Create(problem, [| PointD(1.0, 1.0) |])
+    Assert.False(state.IsValid)
 
+[<Fact>]
+let ``IterativeScoring state is invalid if two musicians are closer than 10 to each other``() =
+    let problem =
+        {
+            RoomWidth = 1_000.0
+            RoomHeight = 100.0
+            StageWidth = 50.0
+            StageHeight = 50.0
+            StageBottomLeft = PointD(0.0, 0.0)
+            Musicians = [| 1 |]
+            Attendees =
+                [|
+                    {
+                        X = 90.0
+                        Y = 90.0
+                        Tastes = [| 100.0 |]
+                    }
+                |]
+            Pillars = [||]
+        }
+
+    let state = State.Create(problem, [| PointD(10.0, 10.0); PointD(11.0, 10.0) |])
     Assert.False(state.IsValid)
