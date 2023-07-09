@@ -9,13 +9,15 @@
     <Compile Include="Geometry.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="Scoring.fs" />
+    <Compile Include="DirectoryLookup.fs" />
+    <Compile Include="Converter.fs" />
     <Compile Include="Solvers\DummySolver.fs" />
     <Compile Include="Solvers\FoxtranSolver.fs" />
     <Compile Include="Solvers\LambdaSolver.fs" />
     <Compile Include="Solvers\DerFreeSolver.fs" />
+    <Compile Include="Solvers\VulpesImporter.fs" />
     <Compile Include="JsonDefs.fs" />
     <Compile Include="HttpApi.fs" />
-    <Compile Include="Converter.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

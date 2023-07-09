@@ -1,5 +1,6 @@
 ﻿module Icfpc2023.Converter
 
+open System
 open System.Text
 
 let ToIni (problem: Problem) (solution: Solution option): string =
@@ -39,3 +40,20 @@ let ToIni (problem: Problem) (solution: Solution option): string =
         result.AppendLine $"{string pillar.Center.X} {string pillar.Center.Y} {string pillar.Radius}" |> ignore
 
     result.ToString().ReplaceLineEndings("\n")
+
+#nowarn "25"
+
+let FromNewIni(text: string): Solution =
+    let lines = text.Split('\n') |> Seq.map(fun t -> t.Trim()) |> Seq.filter(fun t -> t <> "") |> Seq.toArray
+    let header = lines[0].Trim()
+    if header <> "[musicians]" then failwith $"Expected [musicians] but got {header}."
+    let musiciansCount = int (lines[1].Trim())
+
+    let placements = Array.zeroCreate musiciansCount
+    for i in 1..musiciansCount do
+        let line = lines[i + 1].Trim()
+        let components = line.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries)
+        let [| xs; ys; _is |] = components
+        let point = PointD(double xs, double ys)
+        placements[i - 1] <- point
+    { Placements = placements }

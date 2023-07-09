@@ -4,24 +4,15 @@ open System.Text
 open System.Threading.Tasks
 
 open Icfpc2023
+open Icfpc2023.DirectoryLookup
 open Icfpc2023.HttpApi
+open Icfpc2023.Solvers
 
 let inline (|Parse|_|) (str: string) : 'a option =
     let mutable value = Unchecked.defaultof<'a>
     let result = (^a: (static member TryParse: string * byref< ^a> -> bool) str, &value)
     if result then Some value
     else None
-
-let solutionDirectory =
-    let mutable directory = Environment.CurrentDirectory
-    while not(isNull directory) && not <| File.Exists(Path.Combine(directory, "Icfpc2023.sln")) do
-        directory <- Path.GetDirectoryName directory
-    if isNull directory then
-        failwith $"Cannot find root solution dir starting from path \"{Environment.CurrentDirectory}\"."
-    directory
-
-let problemsDir = Path.Combine(solutionDirectory, "problems")
-let solutionsDir = Path.Combine(solutionDirectory, "solutions")
 
 let runSynchronously(t: Task<'a>) =
     t.GetAwaiter().GetResult()
@@ -128,33 +119,35 @@ let solve (problemId: int) (solverName: SolverName) =
     | _ ->
         solveWithSolver problemId solverName
 
-let solveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) =
-    printfn $"Solving problem {problemId}..."
-    let solution, solutionMetadata = solve problemId solverName
-    let newSolver = solutionMetadata.SolverName
-
+let private StoreReceivedSolution problemId newSolution newSolutionMetadata preserveBest =
     match tryReadSolution problemId with
     | Some (_, oldSolutionMetadata) ->
-        let newScore = solutionMetadata.Score
+        let newScore = newSolutionMetadata.Score
         let oldScore = oldSolutionMetadata.Score
         let oldSolver = oldSolutionMetadata.SolverName
         let diff = newScore - oldScore
         let diff_percent = 100.0 * (diff / abs(oldScore))
-        printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({newSolver}) (%+f{diff} / %+.0f{diff_percent}%%)"
+        printfn $"Score for problem {problemId}: {oldScore} ({oldSolver}) -> {newScore} ({newSolutionMetadata.SolverName}) (%+f{diff} / %+.0f{diff_percent}%%)"
 
         if not preserveBest then
             printfn $"Writing solution for problem {problemId}..."
-            writeSolution problemId solution solutionMetadata
+            writeSolution problemId newSolution newSolutionMetadata
         elif preserveBest && (newScore > oldScore) then
             printfn $"Writing best solution for problem {problemId}..."
-            writeSolution problemId solution solutionMetadata
+            writeSolution problemId newSolution newSolutionMetadata
         else
-            printfn $"Do nothing!"
+            printfn "Do nothing!"
 
     | None ->
-        printfn $"Score for problem {problemId}: {solutionMetadata.Score}"
+        printfn $"Score for problem {problemId}: {newSolutionMetadata.Score}"
         printfn $"Writing solution for problem {problemId}..."
-        writeSolution problemId solution solutionMetadata
+        writeSolution problemId newSolution newSolutionMetadata
+
+let solveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool): unit =
+    printfn $"Solving problem {problemId}..."
+    let solution, solutionMetadata = solve problemId solverName
+    let newSolver = solutionMetadata.SolverName
+    StoreReceivedSolution problemId solution solutionMetadata preserveBest
 
 let improveCommand (problemId: int) (solverName: SolverName) (preserveBest: bool) =
     let improveWithSolver (problemId: int) (solverName: SolverName) (initialSolution: Solution) =
@@ -209,7 +202,6 @@ let convertIni problemFile =
         |> Option.map fst
 
     let ini = Converter.ToIni problem solution
-    let examplesDir = Path.Combine(solutionDirectory, "examples")
     Directory.CreateDirectory examplesDir |> ignore
     let iniFile = Path.Combine(examplesDir, $"{problemId}.ini")
     File.WriteAllText(iniFile, ini)
@@ -299,6 +291,17 @@ let main(args: string[]): int =
 
     | [| "lambdaScore" |] ->
         printfn "Nothing."
+
+    | [| "vulpes"; "all" |] ->
+        for item in Directory.GetFiles(examplesDir, "*.ini.new") do
+            let problemId = Path.GetFileNameWithoutExtension item |> Path.GetFileNameWithoutExtension |> int
+            printfn $"Reading problem {problemId}…"
+            let problem = readProblem problemId
+            let solution = VulpesImporter.ImportIni problemId
+            printfn $"Scoring problem {problemId}…"
+            let metadata = { Score = Scoring.CalculateScore problem solution; SolverName = "vulpes" }
+            printfn $"Trying to store solution for {problemId}…"
+            StoreReceivedSolution problemId solution metadata true
 
     | _ -> printfn "Command unrecognized."
 
