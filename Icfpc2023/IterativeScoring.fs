@@ -8,8 +8,7 @@ type State =
     {
         Problem: Problem
         MusicianPlacements: ImmutableArray<PointD> // [0]
-
-        // TODO: add a matrix of attendee-musician distances (squared) -- depends on 0. [1]
+        MusicianAttendeeDistance: ImmutableArray<ImmutableArray<double>> // [1]
 
         // TODO: add a 3D matrix of musician-musician-attendee bools indicating if the first musician blocks the second musician's sound for this attendee -- depends on 0. [6]
 
@@ -22,19 +21,33 @@ type State =
         // TODO: add matrix of closeness*impact (for each attendee-musician pair) -- depends on 4 and 2. [5]
     }
 
+    member private this.UpdateMusicianAttendeeDistances(musicianId: int): State =
+        failwith "unimplemented"
+
     static member Create(problem: Problem, musician_placements: PointD[]): State =
-        {
-            Problem = problem
-            MusicianPlacements = musician_placements.ToImmutableArray()
-        }
+        let musician_attendee_distance =
+            let builder = ImmutableArray.CreateBuilder<ImmutableArray<double>>()
+            for i in 0 .. musician_placements.Length-1 do
+                builder.Add((Array.zeroCreate musician_placements.Length).ToImmutableArray())
+            builder.ToImmutable()
+        let initialState =
+            {
+                Problem = problem
+                MusicianPlacements = musician_placements.ToImmutableArray()
+                MusicianAttendeeDistance = musician_attendee_distance
+            }
+        Seq.indexed musician_placements
+        |> Seq.fold (fun state (i, position) -> state.PlaceMusician(i, position)) initialState
 
     /// Put musician at a given place and return updated state. Leave the original state unmodified
     member this.PlaceMusician(musicianId: int, place: PointD): State =
         let new_musician_placements = this.MusicianPlacements.SetItem(musicianId, place)
+        let state =
+            { this with
+                MusicianPlacements = new_musician_placements
+            }
+        state.UpdateMusicianAttendeeDistances(musicianId)
         // TODO: signal to other fields that this musician moved so they can re-calculate stuff
-        { this with
-            MusicianPlacements = new_musician_placements
-        }
 
     /// Checks if all musicians are far enough from stage edges and each other.
     member this.IsValid: bool =
