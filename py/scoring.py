@@ -34,9 +34,9 @@ def musician_qualities(mus_instruments: np.ndarray,
     return qualities
 
 
-def create_ihibition_matrix(mus_places: np.ndarray,
-                            att_places: np.ndarray,
-                            pillar_center_radius: np.ndarray) -> np.ndarray:
+def create_inhibition_matrix(mus_places: np.ndarray,
+                             att_places: np.ndarray,
+                             pillar_center_radius: np.ndarray) -> np.ndarray:
     n_mus = mus_places.shape[0]
     n_att = att_places.shape[0]
     n_pil = pillar_center_radius.shape[0]
@@ -68,13 +68,19 @@ def create_ihibition_matrix(mus_places: np.ndarray,
 
 
 def score(mus_instruments: np.ndarray,
-          mus_places: np.ndarray,
+          mus_places_volumes: np.ndarray,
           att_places: np.ndarray,
           att_tastes: np.ndarray,
           pillar_center_radius: np.ndarray,
           use_playing_together_ext: bool) -> float:
     n_mus = mus_instruments.shape[0]
     n_att = att_places.shape[0]
+    if mus_places_volumes.shape[1] == 3:
+        mus_places = mus_places_volumes[:, 0:2]
+        mus_volumes = mus_places_volumes[:, 2]
+    else:
+        mus_places = mus_places_volumes
+        mus_volumes = np.ones(n_mus)
 
     att_mus_distances_sq = np.ndarray(shape=(n_mus, n_att), dtype='float64')
     for i_att in range(n_att):
@@ -87,7 +93,7 @@ def score(mus_instruments: np.ndarray,
     else:
         together_qualities = np.ones(shape=n_mus, dtype='float64')
 
-    att_mus_inhibited = create_ihibition_matrix(mus_places, att_places, pillar_center_radius)
+    att_mus_inhibited = create_inhibition_matrix(mus_places, att_places, pillar_center_radius)
 
     score_sum = 0.0
     for i_att in range(n_att):
@@ -96,14 +102,14 @@ def score(mus_instruments: np.ndarray,
                 continue
             diff = mus_places[i_mus] - att_places[i_att]
             d2 = diff[0] * diff[0] + diff[1] * diff[1]
-            taste = att_tastes[i_att, mus_instruments[i_mus]] * together_qualities[i_mus]
+            taste = att_tastes[i_att, mus_instruments[i_mus]] * together_qualities[i_mus] * mus_volumes[i_mus]
             s = math.ceil(1_000_000 * taste / d2)
             score_sum += s
     return score_sum
 
 
 def mc_score(mus_instruments: np.ndarray,
-             mus_places: np.ndarray,
+             mus_places_volumes: np.ndarray,
              att_places: np.ndarray,
              att_tastes: np.ndarray,
              pillar_center_radius: np.ndarray,
@@ -122,7 +128,7 @@ def mc_score(mus_instruments: np.ndarray,
         att_inds = random_inds(att_places, att_ratio)
         pillar_inds = random_inds(pillar_center_radius, pillar_ratio)
         sc = score(mus_instruments[mus_inds],
-                   mus_places[mus_inds],
+                   mus_places_volumes[mus_inds],
                    att_places[att_inds],
                    att_tastes[att_inds],
                    pillar_center_radius[pillar_inds],
@@ -132,8 +138,9 @@ def mc_score(mus_instruments: np.ndarray,
     return score_sum / n_eval / mus_ratio / att_ratio
 
 
-def musicians_out_of_scene_penalty(scene: Scene, mus_places: np.ndarray) -> float:
+def musicians_out_of_scene_penalty(scene: Scene, mus_places_volumes: np.ndarray) -> float:
     radius = 10
+    mus_places = mus_places_volumes[:, 0:2] if mus_places_volumes.shape[1] == 3 else mus_places_volumes
     left_bound = scene.x + radius
     bottom_bound = scene.y + radius
     right_bound = scene.x + scene.w - radius
@@ -143,8 +150,9 @@ def musicians_out_of_scene_penalty(scene: Scene, mus_places: np.ndarray) -> floa
     return np.sum(left_bottom_diff, where=left_bottom_diff > 0) + np.sum(right_top_diff, where=right_top_diff > 0)
 
 
-def musicians_distance_penalty(mus_places: np.ndarray) -> float:
+def musicians_distance_penalty(mus_places_volumes: np.ndarray) -> float:
     radius = 10
+    mus_places = mus_places_volumes[:, 0:2] if mus_places_volumes.shape[1] == 3 else mus_places_volumes
     n_mus = mus_places.shape[0]
     penalty = 0.0
     for i in range(n_mus):
@@ -156,5 +164,6 @@ def musicians_distance_penalty(mus_places: np.ndarray) -> float:
     return penalty
 
 
-def placing_valid(scene: Scene, mus_places: np.ndarray) -> bool:
-    return musicians_out_of_scene_penalty(scene, mus_places) <= 0 and musicians_distance_penalty(mus_places) <= 0
+def placing_valid(scene: Scene, mus_places_volumes: np.ndarray) -> bool:
+    return musicians_out_of_scene_penalty(scene, mus_places_volumes) <= 0 and musicians_distance_penalty(
+        mus_places_volumes) <= 0
