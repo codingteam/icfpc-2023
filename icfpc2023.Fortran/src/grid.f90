@@ -82,36 +82,27 @@ contains
       end if
     end do
   end subroutine exclude
-  subroutine generate_grid(grid, minx, maxx, miny, maxy, algo, value, Npoints)
+  subroutine generate_grid(grid, minx, maxx, miny, maxy, value)
     class(grid_t), intent(inout) :: grid
     real(8), intent(in) :: minx, maxx, miny, maxy
-    real(8), optional, intent(in) :: value
-    integer, optional, intent(in) :: Npoints
-    character(len=*), intent(in) :: algo
+    real(8), intent(in) :: value
+    integer(8) :: Nx, Ny, N
+    integer(8) :: i, j, m
+    real(8) :: x, y
     call grid%dealloc
-    select case(algo)
-      case ("rectangular")
-        block
-          integer(8) :: Nx, Ny, N
-          integer(8) :: i, j, m
-          real(8) :: x, y
-          Nx = 1 + (maxx - minx) / value
-          Ny = 1 + (maxy - miny) / value
-          N = Nx * Ny
-          call grid%alloc(N)
-          m = 1
-          do i = 1, Nx
-            do j = 1, Ny
-              x = minx + (i - 1) * value
-              y = miny + (j - 1) * value
-              grid%pos(m)%x = x
-              grid%pos(m)%y = y
-              m = m + 1
-            end do
-          end do
-        end block
-      case default
-        error stop "unknown algorigtm"
-    end select
+    Nx = 1 + (maxx - minx) / value
+    Ny = 1 + (maxy - miny) / value
+    N = Nx * Ny
+    call grid%alloc(N)
+    m = 1
+    do i = 1, Nx
+      do j = 1, Ny
+        x = minx + (i - 1) * value
+        y = miny + (j - 1) * value
+        grid%pos(m)%x = x
+        grid%pos(m)%y = y
+        m = m + 1
+      end do
+    end do
   end subroutine generate_grid
 end module grid_mod

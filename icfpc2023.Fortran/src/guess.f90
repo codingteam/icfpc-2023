@@ -76,7 +76,7 @@ contains
     miny = room%stage_bottom_left%y + 10
     maxy = room%stage_bottom_left%y + room%stage_height - 10
     do instr = 1, room%N_instruments
-      call grid(instr)%generate_grid(minx, maxx, miny, maxy, "rectangular", 10._8)
+      call grid(instr)%generate_grid(minx, maxx, miny, maxy, 10._8)
     end do
     allocate(order(room%N_musicians))
     do i = 1, room%N_musicians
@@ -102,7 +102,7 @@ contains
                                     min(maxx, grid(layer)%pos(max_pos(1))%x + 10._8), &
                                     max(miny, grid(layer)%pos(max_pos(1))%y - 10._8), &
                                     min(maxy, grid(layer)%pos(max_pos(1))%y + 10._8), &
-                                    "rectangular", 0.25_8)
+                                    0.25_8)
       musician%instrument = layer
       do i = 1, size(additional%skip)
         musician%pos = additional%pos(i)
