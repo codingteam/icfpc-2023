@@ -65,3 +65,57 @@ let Solve (initialSolution: Solution option) (problem: Problem): Solution =
     printfn $"∇: Current score: {score}"
 
     { Placements = solution |> arrayToPoints }
+
+let private pointsToXs (points: PointD[]) =
+    points
+    |> Seq.map (fun p -> p.X)
+    |> Seq.toArray
+
+let private xsToPoints (array: double[]) =
+    array
+    |> Seq.map (fun x -> PointD(x, 10.0))
+    |> Seq.toArray
+
+let SolveHorizontal (initialSolution: Solution option) (problem: Problem): Solution =
+    let initialGuess =
+        match initialSolution with
+        | Some solution ->
+            let initialScore = Scoring.CalculateScore problem solution
+            printfn $"∇: Initial score: {initialScore}"
+            solution.Placements |> pointsToXs
+        | None ->
+            printfn $"∇: Computing initial solution (foxtranV1)..."
+            let initialSolution = FoxtranSolver.FoxtranSolveV1(problem)
+            let initialScore = Scoring.CalculateScore problem initialSolution
+            printfn $"∇: Initial score: {initialScore}"
+            initialSolution.Placements |> pointsToXs
+
+    let objective = fun point ->
+        Scoring.CalculateScore problem { Placements = point |> xsToPoints }
+
+    let method =
+        NelderMead(
+            numberOfVariables = problem.Musicians.Length,
+            ``function`` = objective)
+
+    let lowerBounds = method.LowerBounds
+    for i = 0 to problem.Musicians.Length - 1 do
+        lowerBounds[i] <- problem.StageBottomLeft.X + MusicianDeadZoneRadius
+
+    let upperBounds = method.UpperBounds
+    for i = 0 to problem.Musicians.Length - 1 do
+        upperBounds[i] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
+
+    let step = 100.0
+    let stepSize = method.StepSize
+    for i = 0 to problem.Musicians.Length - 1 do
+        stepSize[i] <- step
+
+    let success = method.Maximize(initialGuess)
+    printfn $"∇: Converged? {success}, status {method.Status}"
+
+    let solution = method.Solution
+    let score = Scoring.CalculateScore problem { Placements = solution |> xsToPoints }
+    printfn $"∇: Current score: {score}"
+
+    { Placements = solution |> xsToPoints }
