@@ -10,7 +10,7 @@ type private Musician = {
 }
 
 type SectoredIndex(problem: Problem) =
-    let sectorSize = 50.0
+    let sectorSize = 100.0
     let sectors =
         let w = int <| ceil(problem.StageWidth / sectorSize)
         let h = int <| ceil(problem.StageHeight / sectorSize)
@@ -28,13 +28,14 @@ type SectoredIndex(problem: Problem) =
         seq {
             for x in 0..w - 1 do
                 for y in 0..h - 1 do
-                    let square = {
-                        BottomLeft = PointD(float x * sectorSize, float y * sectorSize)
-                        Width = sectorSize
-                        Height = sectorSize
-                    }
-                    if stadium'.RectangularPartIntersectsWith square then
-                        yield struct(x, y)
+                    if sectors[x, y].Count > 0 then
+                        let square = {
+                            BottomLeft = PointD(float x * sectorSize, float y * sectorSize)
+                            Width = sectorSize
+                            Height = sectorSize
+                        }
+                        if stadium'.RectangularPartIntersectsWith square then
+                            yield struct(x, y)
         }
 
     member _.Add(point: PointD): unit =
@@ -42,8 +43,7 @@ type SectoredIndex(problem: Problem) =
         sector.Add point
 
     member _.GetPointsIn(s: Stadium): PointD seq =
-        let squares = getSectorSquares s |> Seq.toArray
-
+        let squares = getSectorSquares s
         squares
         |> Seq.collect(fun (struct(x, y)) -> sectors[x, y])
         |> Seq.filter(s.Contains)
@@ -58,14 +58,12 @@ let private AnyOtherMusicianBlocksSound(index: SectoredIndex,
     let musician = musician.Location
     let attendee = PointD(attendee.X, attendee.Y)
     let blockZone = { Center1 = musician; Center2 = attendee; Radius = 5.0 }
-    let candidates = index.GetPointsIn blockZone |> Seq.toArray // TODO REMOVE TOARRAY
+    let candidates = index.GetPointsIn blockZone
 
-    let blocking =
-        candidates
-        |> Seq.filter(fun p -> p <> musician)
-        |> Seq.toArray
-
-    blocking.Length > 0
+    candidates
+    |> Seq.filter(fun p -> p <> musician)
+    |> Seq.tryHead
+    |> Option.isSome
 
 let private AnyPillarBlocksSound (pillars: Pillar[]) (musician: Musician) (attendee: Attendee): bool =
     let musician = PointD(musician.Location.X, musician.Location.Y)
