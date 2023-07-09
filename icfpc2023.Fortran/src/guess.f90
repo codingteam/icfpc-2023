@@ -85,6 +85,8 @@ contains
     end do
     musician%volume = 1._8
     do instr = 1, room%N_instruments
+      write(6, "(A,I0,A,I0,A)", advance="no") "Layer ", instr, " of ", room%N_instruments, repeat(" ", 20) // char(13)
+      flush(6)
       musician%instrument = instr
       do i = 1, size(grid(instr)%skip)
         musician%pos = grid(instr)%pos(i)
@@ -93,6 +95,8 @@ contains
       end do
     end do
     do layer = 1, room%N_instruments
+      write(6, "(A,I0,A,I0,A)", advance="no") "Layer ", layer, " of ", room%N_instruments, repeat(" ", 20) // char(13)
+      flush(6)
       max_pos = maxloc(grid(layer)%value)
       call additional%generate_grid(max(minx, grid(layer)%pos(max_pos(1))%x - 10._8), &
                                     min(maxx, grid(layer)%pos(max_pos(1))%x + 10._8), &
