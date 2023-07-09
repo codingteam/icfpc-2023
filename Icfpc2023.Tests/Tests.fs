@@ -76,7 +76,7 @@ let ``Scoring yields the expected score for the sample problem from the spec`` (
                     PointD(1_100.0, 100.0)
                     PointD(1_100.0, 150.0)
                 |]
-            Volumes = [||]
+            Volumes = [| 1.0; 1.0; 1.0 |]
         }
 
     Assert.Equal(5343.0, CalculateScore problem solution)

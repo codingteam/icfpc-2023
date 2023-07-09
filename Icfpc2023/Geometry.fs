@@ -80,7 +80,7 @@ type Stadium =
         // Check that the point lies in the neighbourhood of the segment between the two centres. Two cases here, depending on whether the segment is vertical or not
 
         let closest =
-            if x1 = x1
+            if x1 = x2
             then PointD(x1, y0)
             else // the segment is not vertical
 
