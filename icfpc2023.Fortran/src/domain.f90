@@ -47,6 +47,7 @@ module domain
   end type
 
   interface sound_transparency
+    module procedure sound_transparency_attendees
     module procedure sound_transparency_musicians
     module procedure sound_transparency_pillars
   end interface
@@ -150,6 +151,16 @@ contains
       Tma(j, i) = this%attendees(i)%tastes(this%musicians(j)%instrument)
     end do
   end function room_build_taste_matrix
+
+  function room_build_AA_distance_matrix(this) result(Daa)
+    class(room_t), intent(in) :: this
+    integer :: i, j
+    real(8), allocatable :: Daa(:,:)
+    allocate(Dma(this%N_attendees, this%N_attendees))
+    do concurrent (i = 1:this%N_attendees, j = 1:this%N_attendees)
+      Dma(j, i) = 1._8 / ((this%attendees(i)%pos%x - this%N_attendees(j)%pos%x) ** 2 + (this%attendees(i)%pos%y - this%N_attendees(j)%pos%y) ** 2)
+    end do
+  end function room_build_AA_distance_matrix
 
   function room_build_MA_distance_matrix(this) result(Dma)
     class(room_t), intent(in) :: this
@@ -273,6 +284,24 @@ contains
       return
     endif
     call line%new(attendee%pos, musician%pos)
+    do i = 1, size(pillars)
+      if (line%distanceTo(pillars(i)%pos) < pillars(i)%radius) then
+        factor = 0._8
+        exit
+      end if
+    end do
+  end function sound_transparency_pillars
+
+  pure real(8) function sound_transparency_attendees(attendee1, attendee2, pillars) result (factor)
+    type(attendee_t), intent(in) :: attendee1, attendee2
+    type(pillar_t), intent(in), allocatable :: pillars(:)
+    type(line_t) :: line
+    integer :: i
+    factor = 1._8
+    if (.not.allocated(pillars)) then
+      return
+    endif
+    call line%new(attendee1%pos, attendee2%pos)
     do i = 1, size(pillars)
       if (line%distanceTo(pillars(i)%pos) < pillars(i)%radius) then
         factor = 0._8
