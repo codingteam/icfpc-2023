@@ -64,6 +64,7 @@ def ES_solve(stage: Stage,
 
         for solution in population:
             sol_score = call_score(solution)
+            current_score = call_score(current_solution)
             if sol_score[0] > current_score[0] and (step < step_count * 0.7 or sol_score[1] >= current_score[1]):
                 current_solution = solution
                 current_score = sol_score

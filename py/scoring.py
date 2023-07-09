@@ -121,7 +121,7 @@ def mc_score(mus_instruments: np.ndarray,
         size = arr.shape[0]
         return np.random.choice(range(size), math.ceil(size * ratio), False)
 
-    score_sum = 0.0
+    scores = []
     for _ in range(n_eval):
         mus_inds = random_inds(mus_instruments, mus_ratio)
         att_inds = random_inds(att_places, att_ratio)
@@ -132,9 +132,11 @@ def mc_score(mus_instruments: np.ndarray,
                    att_tastes[att_inds],
                    pillar_center_radius[pillar_inds] if len(pillar_inds) > 0 else np.array([]),
                    use_playing_together_ext)
-        score_sum += sc
+        scores.append(sc)
+    scores = np.array(scores)
+    score_avg = scores.mean() - 1 * scores.std()
 
-    return score_sum / n_eval / mus_ratio / att_ratio
+    return score_avg / mus_ratio / att_ratio
 
 
 def musicians_out_of_scene_penalty(scene: Stage, mus_places_volumes: np.ndarray) -> float:
