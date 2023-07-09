@@ -43,8 +43,13 @@ def create_inhibition_matrix(mus_places: np.ndarray,
     mus_radius = 5
     att_mus_inhibited = np.zeros((n_att, n_mus), dtype='bool')
 
-    block_coords = np.append(mus_places, pillar_center_radius[:, 0:2], axis=0)
-    block_radiuses = np.append(np.ones((n_mus, 1)) * mus_radius, pillar_center_radius[:, 2], axis=0)
+    if pillar_center_radius.shape[0] > 0:
+        block_coords = np.append(mus_places, pillar_center_radius[:, 0:2], axis=0)
+        block_radiuses = np.append(np.ones((n_mus, 1)) * mus_radius, pillar_center_radius[:, 2], axis=0)
+    else:
+        block_coords = mus_places
+        block_radiuses = np.ones((n_mus, 1)) * mus_radius
+
     n_block = n_mus + n_pil
     for i_att in range(n_att):
         att = att_places[i_att]
@@ -82,12 +87,6 @@ def score(mus_instruments: np.ndarray,
         mus_places = mus_places_volumes
         mus_volumes = np.ones(n_mus)
 
-    att_mus_distances_sq = np.ndarray(shape=(n_mus, n_att), dtype='float64')
-    for i_att in range(n_att):
-        for i_mus in range(n_mus):
-            diff = mus_places[i_mus] - att_places[i_att]
-            d2 = diff[0] ** 2 + diff[1] ** 2
-            att_mus_distances_sq[i_att, i_mus] = d2
     if use_playing_together_ext:
         together_qualities = musician_qualities(mus_instruments, mus_places)
     else:
@@ -131,7 +130,7 @@ def mc_score(mus_instruments: np.ndarray,
                    mus_places_volumes[mus_inds],
                    att_places[att_inds],
                    att_tastes[att_inds],
-                   pillar_center_radius[pillar_inds],
+                   pillar_center_radius[pillar_inds] if pillar_inds else np.array([]),
                    use_playing_together_ext)
         score_sum += sc
 
@@ -164,6 +163,6 @@ def musicians_distance_penalty(mus_places_volumes: np.ndarray) -> float:
     return penalty
 
 
-def placing_valid(scene: Stage, mus_places_volumes: np.ndarray) -> bool:
-    return musicians_out_of_scene_penalty(scene, mus_places_volumes) <= 0 and musicians_distance_penalty(
+def placing_valid(stage: Stage, mus_places_volumes: np.ndarray) -> bool:
+    return musicians_out_of_scene_penalty(stage, mus_places_volumes) <= 0 and musicians_distance_penalty(
         mus_places_volumes) <= 0
