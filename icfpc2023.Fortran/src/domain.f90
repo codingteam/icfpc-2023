@@ -123,12 +123,14 @@ contains
     close(LU)
   end subroutine room_load
 
-  subroutine room_dump(this, filename)
+  subroutine room_dump(this, filename, algo)
     class(room_t), intent(inout) :: this
-    character(len=*), intent(in) :: filename
+    character(len=*), intent(in) :: filename, algo
     integer :: LU, i
     ! Open the file
     open(newunit=LU, file=filename, status='replace', action='write')
+    write(LU, "(A)") "[algorithm]"
+    write(LU, "(A)") algo
     write(LU, "(A)") "[musicians]"
     write(LU, "(I0)") this%N_musicians
     do i = 1, this%N_musicians
