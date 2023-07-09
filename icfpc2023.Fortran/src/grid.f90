@@ -121,7 +121,22 @@ contains
       do iang = 1, Nrad
         x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
         y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
-        print *, x, y
+        if (minx > x .or. maxx < x) cycle
+        if (miny > y .or. maxy < y) cycle
+        m = m + 1
+      end do
+    end do
+    call grid%alloc(m)
+    m = 1
+    do irad = 1, size(radial)
+      do iang = 1, Nrad
+        x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
+        y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
+        if (minx > x .or. maxx < x) cycle
+        if (miny > y .or. maxy < y) cycle
+        grid%pos(m)%x = x
+        grid%pos(m)%y = y
+        m = m + 1
       end do
     end do
   end subroutine generate_radial_grid
