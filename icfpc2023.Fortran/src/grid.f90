@@ -107,7 +107,7 @@ contains
     end do
   end subroutine generate_grid
   subroutine generate_radial_grid(grid, minx, maxx, miny, maxy, center, Nrad)
-    real(8), parameter :: radial(10) = 10._8 + (/ 0.0_8, 0.46_8, 0.97_8, 1.55_8, 2.22_8, 3.01_8, 3.98_8, 5.23_8, 6.99_8, 10.0_8 /)
+    real(8), parameter :: radial(11) = 10._8 + (/ 0.0_8, 0.46_8, 0.97_8, 1.55_8, 2.22_8, 3.01_8, 3.98_8, 5.23_8, 6.99_8, 10.0_8, 15.0_8 /)
     real(8), parameter :: PI2 = 4.0_8*atan(1.0_8)*2._8
     class(grid_t), intent(inout) :: grid
     real(8), intent(in) :: minx, maxx, miny, maxy
@@ -119,8 +119,8 @@ contains
     m = 0
     do irad = 1, size(radial)
       do iang = 1, Nrad
-        x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
-        y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
+        x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad))) + center%x
+        y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad))) + center%y
         if (minx > x .or. maxx < x) cycle
         if (miny > y .or. maxy < y) cycle
         m = m + 1
@@ -130,8 +130,8 @@ contains
     m = 1
     do irad = 1, size(radial)
       do iang = 1, Nrad
-        x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
-        y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad)))
+        x = radial(irad) * sin(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad))) + center%x
+        y = radial(irad) * cos(PI2*((iang-1)/dble(Nrad)+(irad-1)/dble(2*Nrad))) + center%y
         if (minx > x .or. maxx < x) cycle
         if (miny > y .or. maxy < y) cycle
         grid%pos(m)%x = x
