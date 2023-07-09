@@ -77,16 +77,23 @@ type Stadium =
         if line.DistanceTo(p) >= this.Radius then false
         else
 
-        // Calculate slope and intercept of line between the two centres:
-        // y = mx + b
-        let m = (y2 - y1) / (x2 - x1)
-        let b = y1 - m*x1
+        // Check that the point lies in the neighbourhood of the segment between the two centres. Two cases here, depending on whether the segment is vertical or not
 
-        // The point on the line that's closest to p
-        // ax + by + c = 0    ===   mx - y + b = 0
-        let closest_x = (x0 + m*y0 - m*b) / (m ** 2.0 + 1.0)
-        let closest_y = (m*(x0 + m*y0) + b) / (m ** 2.0 + 1.0)
-        let closest = PointD(closest_x, closest_y)
+        let closest =
+            if x1 = x1
+            then PointD(x1, y0)
+            else // the segment is not vertical
+
+                // Calculate slope and intercept of line between the two centres:
+                // y = mx + b
+                let m = (y2 - y1) / (x2 - x1)
+                let b = y1 - m*x1
+
+                // The point on the line that's closest to p
+                // ax + by + c = 0    ===   mx - y + b = 0
+                let closest_x = (x0 + m*y0 - m*b) / (m ** 2.0 + 1.0)
+                let closest_y = (m*(x0 + m*y0) + b) / (m ** 2.0 + 1.0)
+                PointD(closest_x, closest_y)
 
         // Now check if the closest point is between the two centres, i.e. it
         // lies on the segment between them. By construction, it lies on the
