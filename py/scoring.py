@@ -54,7 +54,7 @@ def create_inhibition_matrix(mus_places: np.ndarray,
     for i_att in range(n_att):
         att = att_places[i_att]
         for i_mus in range(n_mus):
-            mus = att_places[i_mus]
+            mus = mus_places[i_mus]
             AM = mus - att
             lenAM = np.linalg.norm(AM)
             AM = AM / lenAM
