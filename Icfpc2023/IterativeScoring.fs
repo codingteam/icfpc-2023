@@ -383,3 +383,9 @@ type State =
         if not this.IsValid
         then 0.0
         else this.MusicianAttendeeTotalImpact.Sum
+
+    member this.ToSolution: Solution =
+        {
+            Placements = Seq.toArray this.MusicianPlacements
+            Volumes = [||] // TODO: add support for volumes
+        }
