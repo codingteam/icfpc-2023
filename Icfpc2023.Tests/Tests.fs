@@ -78,7 +78,7 @@ let ``Scoring yields the expected score for the sample problem from the spec`` (
             Volumes = [| 1.0; 1.0; 1.0 |]
         }
 
-    Assert.Equal(5343.0, CalculateScore problem solution)
+    Assert.Equal(5343.0, Scoring.CalculateScore problem solution)
 
 [<Fact>]
 let ``Stadium detects intersection when blocking musician is right on the line`` () =

@@ -42,8 +42,11 @@ type SectoredIndex(problem: Problem) =
         sector.Add point
 
     member _.GetPointsIn(s: Stadium): PointD seq =
-        getSectorSquares s
+        let squares = getSectorSquares s |> Seq.toArray
+
+        squares
         |> Seq.collect(fun (struct(x, y)) -> sectors[x, y])
+        |> Seq.filter(s.Contains)
 
 let private CalculateAttendeeMusicianScore(attendee: Attendee, musician: Musician, closeness: ClosenessFactor): Score =
     let d_squared = (attendee.X - musician.Location.X) ** 2.0 + (attendee.Y - musician.Location.Y) ** 2.0
@@ -57,10 +60,12 @@ let private AnyOtherMusicianBlocksSound(index: SectoredIndex,
     let blockZone = { Center1 = musician; Center2 = attendee; Radius = 5.0 }
     let candidates = index.GetPointsIn blockZone |> Seq.toArray // TODO REMOVE TOARRAY
 
-    candidates
-    |> Seq.filter(fun p -> p <> musician)
-    |> Seq.tryHead
-    |> Option.isSome
+    let blocking =
+        candidates
+        |> Seq.filter(fun p -> p <> musician)
+        |> Seq.toArray
+
+    blocking.Length > 0
 
 let private AnyPillarBlocksSound (pillars: Pillar[]) (musician: Musician) (attendee: Attendee): bool =
     let musician = PointD(musician.Location.X, musician.Location.Y)

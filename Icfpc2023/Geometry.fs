@@ -44,6 +44,7 @@ type Rectangle =
     }
     member private this.UpperRight: PointD =
         this.BottomLeft + PointD(this.Width, this.Height)
+
     member this.Contains(p: PointD): bool =
         let (PointD(x, y)) = p
         let (PointD(x0, y0)) = this.BottomLeft
@@ -117,54 +118,38 @@ type Stadium =
         let sin = sin radians
         PointD(x * cos - y * sin, x * sin + y * cos)
 
-    member this.RectanglePoints = [|
-        this.Center1 + (Stadium.NormalizeVector(this.Center2 - this.Center1) |> Stadium.RotateVector(Math.PI/2.0)) * this.Radius
-        this.Center1 + (Stadium.NormalizeVector(this.Center2 - this.Center1) |> Stadium.RotateVector(-Math.PI/2.0)) * this.Radius
-        this.Center2 + (Stadium.NormalizeVector(this.Center2 - this.Center1) |> Stadium.RotateVector(Math.PI/2.0)) * this.Radius
-        this.Center2 + (Stadium.NormalizeVector(this.Center2 - this.Center1) |> Stadium.RotateVector(-Math.PI/2.0)) * this.Radius
-    |]
+    // https://stackoverflow.com/a/18292964/2684760
+    static member LineIntersectsRect(struct(a, b), rect: Rectangle): bool =
+        let (PointD(x1, y1)) = a
+        let (PointD(x2, y2)) = b
 
-    /// https://stackoverflow.com/a/10965077/2684760
-    static member DoPolygonsIntersect(a: PointD[], b: PointD[]): bool =
-        let mutable foundNoIntersection = false
-        for polygon in [|a; b|] do
-            for i1 in 0 .. polygon.Length - 1 do
-                if not foundNoIntersection then
-                    let i2 = (i1 + 1) % polygon.Length
-                    let p1 = polygon[i1]
-                    let p2 = polygon[i2]
+        let minX = rect.BottomLeft.X
+        let maxX = rect.BottomLeft.X + rect.Width
+        let minY = rect.BottomLeft.Y
+        let maxY = rect.BottomLeft.Y + rect.Height
 
-                    let normal = PointD(p2.Y - p1.Y, p1.X - p2.X)
-
-                    let mutable minA = Nullable<double>()
-                    let mutable maxA = Nullable<double>()
-                    for p in a do
-                        let projected = normal.X * p.X + normal.Y * p.Y
-                        if not minA.HasValue || projected < minA.Value then
-                            minA <- projected
-                        if not maxA.HasValue || projected > maxA.Value then
-                            maxA <- projected
-
-                    let mutable minB = Nullable<double>()
-                    let mutable maxB = Nullable<double>()
-                    for p in b do
-                        let projected = normal.X * p.X + normal.Y * p.Y
-                        if not minB.HasValue || projected < minB.Value then
-                            minB <- projected
-                        if not maxB.HasValue || projected > maxB.Value then
-                            maxB <- projected
-
-                    if Nullable.Compare(maxA, maxB) < 0 || Nullable.Compare(maxB, minA) < 0 then
-                        foundNoIntersection <- true
-
-        if foundNoIntersection then false else true
+        let k = (y2 - y1) / (x2 - x1)
+        let y = k * (minX - x1) + y1
+        if y > minY && y < maxY then true
+        else
+            let y = k * (maxX - x1) + y1
+            if y > minY && y < maxY then true
+            else
+                let x = (minY - y1) / k + x1
+                if x > minX && x < maxX then true
+                else
+                    let x = (maxY - y1) / k + x1
+                    if x > minX && x < maxX then true
+                    else false
 
     member this.RectangularPartIntersectsWith(rect: Rectangle): bool =
-        let p1Points = [|
-            rect.BottomLeft
-            rect.BottomLeft + PointD(rect.Width, 0.0)
-            rect.BottomLeft + PointD(rect.Width, rect.Height)
-            rect.BottomLeft + PointD(0.0, rect.Height)
-        |]
-        let p2Points = this.RectanglePoints
-        Stadium.DoPolygonsIntersect(p1Points, p2Points)
+        let radiusVector = Stadium.NormalizeVector(this.Center2 - this.Center1) * this.Radius
+        let line1 = struct (
+            this.Center1 + Stadium.RotateVector(Math.PI / 2.0) radiusVector,
+            this.Center2 + Stadium.RotateVector(Math.PI / 2.0) radiusVector
+        )
+        let line2 = struct (
+            this.Center1 - Stadium.RotateVector(Math.PI / 2.0) radiusVector,
+            this.Center2 - Stadium.RotateVector(Math.PI / 2.0) radiusVector
+        )
+        Stadium.LineIntersectsRect(line1, rect) || Stadium.LineIntersectsRect(line2, rect)
