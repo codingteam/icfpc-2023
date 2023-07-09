@@ -40,6 +40,7 @@ let experimentalSolvers = Map [
 let improvementSolvers = Map [
     "lambda", LambdaSolver.Solve
     "derfree", DerFreeSolver.Solve
+    "suosi", ShapeUpOrShipOut.Solve
 ]
 
 let solvers = Map(Seq.concat [

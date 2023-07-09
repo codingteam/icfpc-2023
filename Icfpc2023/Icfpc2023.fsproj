@@ -17,6 +17,7 @@
     <Compile Include="Solvers\LambdaSolver.fs" />
     <Compile Include="Solvers\DerFreeSolver.fs" />
     <Compile Include="Solvers\VulpesImporter.fs" />
+    <Compile Include="Solvers\ShapeUpOrShipOut.fs" />
     <Compile Include="JsonDefs.fs" />
     <Compile Include="HttpApi.fs" />
     <Compile Include="Program.fs" />

@@ -253,6 +253,13 @@ type MusicianAttendeeTotalImpact =
         let index = this.GetIndex musicianId attendeeId
         this.Impacts[index]
 
+    member this.MusicianSubscore(musicianId: int): double =
+        { 0 .. this.AttendeesCount-1 }
+        |> Seq.map (fun attendeeId ->
+                let index = this.GetIndex musicianId attendeeId
+                this.Impacts[index])
+        |> Seq.sum
+
     member this.Sum: Score =
         this.Impacts |> Seq.sum
 
