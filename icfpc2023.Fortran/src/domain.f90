@@ -15,6 +15,7 @@ module domain
   type, public :: musician_t
     type(Vec2D_t) :: pos
     integer(8) :: instrument
+    real(8) :: volume = 1.0
   end type
 
   type, public :: pillar_t
@@ -93,7 +94,7 @@ contains
         read(LU, *) this%N_musicians
         allocate(this%musicians(this%N_musicians))
         do i = 1, this%N_musicians
-          read(LU, *) this%musicians(i)%pos%x, this%musicians(i)%pos%y, this%musicians(i)%instrument
+          read(LU, *) this%musicians(i)%pos%x, this%musicians(i)%pos%y, this%musicians(i)%instrument, this%musicians(i)%volume
           this%musicians(i)%instrument = this%musicians(i)%instrument + 1
         end do
         do i = 1, this%N_musicians
