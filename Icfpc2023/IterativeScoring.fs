@@ -21,7 +21,7 @@ type MusicianAttendeeDistance =
         }
 
     member private this.GetIndex(musicianId: int) (attendeeId: int): int =
-        musicianId * this.MusiciansCount + attendeeId
+        musicianId * this.AttendeesCount + attendeeId
 
     member this.SetDistance(musicianId: int) (attendeeId: int) (distance: double): MusicianAttendeeDistance =
         let index = this.GetIndex musicianId attendeeId
@@ -47,16 +47,22 @@ type MusicianBlocks =
             Blocks = blocks
         }
 
-    member private this.GetIndex(musicianId: int) (attendeeId: int): int =
-        musicianId * this.MusiciansCount + attendeeId
+    member private this.GetIndex(blockingMusicianId: int) (blockedMusicianId: int) (attendeeId: int): int =
+        (
+            blockingMusicianId * this.MusiciansCount
+            + blockedMusicianId
+        ) * this.AttendeesCount
+        + attendeeId
 
-    member this.SetBlocks(musicianId: int) (attendeeId: int) (blocks: bool): MusicianBlocks =
-        let index = this.GetIndex musicianId attendeeId
+    member this.SetBlocks(blockingMusicianId: int) (blockedMusicianId: int) (attendeeId: int) (blocks: bool): MusicianBlocks =
+        let index = this.GetIndex blockingMusicianId blockedMusicianId attendeeId
         { this with Blocks = this.Blocks.SetItem(index, blocks) }
 
-    member this.IsSoundBlockedBetween(musicianId: int) (attendeeId: int): bool =
-        let index = this.GetIndex musicianId attendeeId
-        this.Blocks[index]
+    member this.IsSoundBlockedBetween(blockedMusicianId: int) (attendeeId: int): bool =
+        { 0 .. this.MusiciansCount-1 }
+        |> Seq.exists (fun blockingMusicianId ->
+                let index = this.GetIndex blockingMusicianId blockedMusicianId attendeeId
+                this.Blocks[index])
 
 type PillarsBlocks =
     {
@@ -77,9 +83,11 @@ type PillarsBlocks =
         }
 
     member private this.GetIndex(pillarId: int) (musicianId: int) (attendeeId: int): int =
-        musicianId * this.MusiciansCount * this.AttendeesCount
-            + attendeeId * this.AttendeesCount
-            + pillarId
+        (
+            attendeeId * this.MusiciansCount
+            + musicianId
+        ) * this.PillarsCount
+        + pillarId
 
     member this.SetBlocks(pillarId: int) (musicianId: int) (attendeeId: int) (blocks: bool): PillarsBlocks =
         if this.PillarsCount > 0
@@ -112,7 +120,7 @@ type MusicianAttendeeImpact =
         }
 
     member private this.GetIndex(musicianId: int) (attendeeId: int): int =
-        musicianId * this.MusiciansCount + attendeeId
+        musicianId * this.AttendeesCount + attendeeId
 
     member this.SetImpact(musicianId: int) (attendeeId: int) (impact: double): MusicianAttendeeImpact =
         let index = this.GetIndex musicianId attendeeId
@@ -196,15 +204,18 @@ type MusicianAttendeeTotalImpact =
         }
 
     member private this.GetIndex(musicianId: int) (attendeeId: int): int =
-        musicianId * this.MusiciansCount + attendeeId
+        musicianId * this.AttendeesCount + attendeeId
 
-    member this.SetDistance(musicianId: int) (attendeeId: int) (impact: double): MusicianAttendeeTotalImpact =
+    member this.SetTotalImpact(musicianId: int) (attendeeId: int) (total_impact: double): MusicianAttendeeTotalImpact =
         let index = this.GetIndex musicianId attendeeId
-        { this with Impacts = this.Impacts.SetItem(index, impact) }
+        { this with Impacts = this.Impacts.SetItem(index, total_impact) }
 
     member this.TotalImpact(musicianId: int) (attendeeId: int): double =
         let index = this.GetIndex musicianId attendeeId
         this.Impacts[index]
+
+    member this.Sum: Score =
+        this.Impacts |> Seq.sum
 
 type State =
     {
@@ -223,28 +234,63 @@ type State =
         { this with MusicianPlacements = this.MusicianPlacements.SetItem(musicianId, place) }
 
     member private this.UpdateMusicianAttendeeDistances(musicianId: int): State =
-        // TODO: failwith "unimplemented"
-        this
+        let me = this.MusicianPlacements.[musicianId]
+
+        Seq.indexed this.Problem.Attendees
+        |> Seq.fold
+            (fun state (attendeeId, attendee) ->
+                let attendee = PointD(attendee.X, attendee.Y)
+                let distance = me.DistanceTo(attendee)
+                let distances = state.MusicianAttendeeDistance.SetDistance musicianId attendeeId distance
+                { state with MusicianAttendeeDistance = distances })
+            this
 
     member private this.UpdateMusicianBlocks(musicianId: int): State =
-        // TODO: failwith "unimplemented"
-        this
+        let me = this.MusicianPlacements.[musicianId]
+
+        Seq.indexed this.Problem.Attendees
+        |> Seq.fold
+            (fun state (attendeeId, attendee) ->
+                let attendee = PointD(attendee.X, attendee.Y)
+                let blockZone = { Center1 = me; Center2 = attendee; Radius = 5.0 }
+                let blocks: MusicianBlocks =
+                    Seq.indexed this.MusicianPlacements
+                    |> Seq.filter(fun(i, _) -> i <> musicianId)
+                    |> Seq.fold
+                        (fun curBlocks (otherId, otherMusician) ->
+                            let isBlocked = blockZone.Contains otherMusician
+                            curBlocks.SetBlocks musicianId otherId attendeeId isBlocked)
+                        state.MusicianBlocksOtherForAttendee
+                { state with MusicianBlocksOtherForAttendee = blocks})
+            this
 
     member private this.UpdatePillarsBlocks(musicianId: int): State =
         // TODO: failwith "unimplemented"
         this
 
     member private this.UpdateMusicianAttendeeImpact(musicianId: int): State =
-        let state =
+        let instrument = this.Problem.Musicians.[musicianId]
+        let updatedState =
             this
                 .UpdateMusicianAttendeeDistances(musicianId)
                 .UpdateMusicianBlocks(musicianId)
                 .UpdatePillarsBlocks(musicianId)
-        // TODO: failwith "unimplemented"
-        state
+        Seq.indexed this.Problem.Attendees
+        |> Seq.fold
+            (fun state (attendeeId, attendee) ->
+                if state.MusicianBlocksOtherForAttendee.IsSoundBlockedBetween musicianId attendeeId
+                then state
+                else
+                    let distance = state.MusicianAttendeeDistance.Distance musicianId attendeeId
+                    let taste = attendee.Tastes.[instrument]
+                    let this_impact = ceil(1_000_000.0 * taste / distance ** 2.0)
+                    let impact = state.MusicianAttendeeImpact.SetImpact musicianId attendeeId this_impact
+                    { state with MusicianAttendeeImpact = impact })
+            updatedState
 
     member private this.UpdateMusicianDistances(musicianId: int): State =
         let me = this.MusicianPlacements.[musicianId]
+
         seq { 0 .. this.MusicianPlacements.Length-1 }
         |> Seq.fold
             (fun state otherId ->
@@ -258,16 +304,28 @@ type State =
 
     member private this.UpdateMusicianClosenessFactor(musicianId: int): State =
         let state = this.UpdateMusicianDistances(musicianId)
-        // TODO: failwith "unimplemented"
-        state
+        if this.Problem.Pillars.Length = 0
+        then state // nothing to do -- closeness factors are not active in problems without pillars
+        else
+            // TODO: failwith "unimplemented"
+            state
 
     member private this.UpdateMusicianAttendeeTotalImpact(musicianId: int): State =
         let state =
             this
                 .UpdateMusicianAttendeeImpact(musicianId)
                 .UpdateMusicianClosenessFactor(musicianId)
-        // TODO: failwith "unimplemented"
-        state
+
+        seq { 0 .. state.Problem.Musicians.Length-1 }
+        |> Seq.zip { 0 .. state.Problem.Attendees.Length-1 }
+        |> Seq.fold
+            (fun state (musicianId, attendeeId) ->
+                let closeness = state.MusicianClosenessFactor.ClosenessFactor musicianId
+                let impact = state.MusicianAttendeeImpact.Impact musicianId attendeeId
+                let total_impact = ceil(closeness * impact)
+                let updated_impacts = state.MusicianAttendeeTotalImpact.SetTotalImpact musicianId attendeeId total_impact
+                { state with MusicianAttendeeTotalImpact = updated_impacts })
+            state
 
     /// Create initial state with given musician placements.
     static member Create(problem: Problem, musician_placements: PointD[]): State =
@@ -321,4 +379,4 @@ type State =
     member this.Score: Score =
         if not this.IsValid
         then 0.0
-        else failwith "unimplemented"
+        else this.MusicianAttendeeTotalImpact.Sum
