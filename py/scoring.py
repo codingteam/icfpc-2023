@@ -45,7 +45,7 @@ def create_inhibition_matrix(mus_places: np.ndarray,
 
     if pillar_center_radius.shape[0] > 0:
         block_coords = np.append(mus_places, pillar_center_radius[:, 0:2], axis=0)
-        block_radiuses = np.append(np.ones((n_mus, 1)) * mus_radius, pillar_center_radius[:, 2], axis=0)
+        block_radiuses = np.append(np.ones(n_mus) * mus_radius, pillar_center_radius[:, 2], axis=0)
     else:
         block_coords = mus_places
         block_radiuses = np.ones((n_mus, 1)) * mus_radius
@@ -130,7 +130,7 @@ def mc_score(mus_instruments: np.ndarray,
                    mus_places_volumes[mus_inds],
                    att_places[att_inds],
                    att_tastes[att_inds],
-                   pillar_center_radius[pillar_inds] if pillar_inds else np.array([]),
+                   pillar_center_radius[pillar_inds] if len(pillar_inds) > 0 else np.array([]),
                    use_playing_together_ext)
         score_sum += sc
 

@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -21,7 +22,7 @@ def ES_solve(stage: Stage,
              att_tastes: np.ndarray,
              pillar_center_radius: np.ndarray,
              use_playing_together_ext: bool = True) -> (np.ndarray, float, bool):
-    initial_sigmas = np.array([stage.w / 3, stage.h / 3, 5 / 3], dtype='float64')
+    initial_sigmas = np.array([stage.w / 3 / 2, stage.h / 3 / 2, 5 / 3 / 2], dtype='float64')
     step_count = 100
     population_size = 20
     score_k = 1
@@ -33,10 +34,10 @@ def ES_solve(stage: Stage,
     def call_score(mus_places_volumes: np.ndarray) -> (float, bool, float, float):
         sc = mc_score(mus_instruments, mus_places_volumes, att_places, att_tastes, pillar_center_radius,
                       use_playing_together_ext,
-                      mus_ratio=0.05,
-                      att_ratio=0.05,
-                      pillar_ratio=0.05,
-                      n_eval=50)
+                      mus_ratio=0.01,
+                      att_ratio=0.01,
+                      pillar_ratio=0.01,
+                      n_eval=30)
         mus_dist_penalty = musicians_distance_penalty(mus_places_volumes)
         mus_scene_penalty = musicians_out_of_scene_penalty(stage, mus_places_volumes)
         valid = mus_dist_penalty <= 0 and mus_scene_penalty <= 0
@@ -55,14 +56,15 @@ def ES_solve(stage: Stage,
     current_solution = initial_solution(stage, n_musicians, [0.001, 0.001, 0.1])
     current_score = call_score(current_solution)
     for step in range(step_count):
-        sigmas = initial_sigmas - initial_sigmas * step / step_count
+        # sigmas = initial_sigmas * (1.0 - step / step_count)
+        sigmas = initial_sigmas * (math.exp(-step / step_count * 6))
         print(f"Step {step}/{step_count} Approx.score={current_score} sigmas={sigmas}")
         population = gen_population(current_solution, sigmas)
         # TODO: make solutions valid / filter invalid
 
         for solution in population:
             sol_score = call_score(solution)
-            if sol_score[0] > current_score[0] and sol_score[1] >= current_score[1]:
+            if sol_score[0] > current_score[0] and (step < step_count * 0.7 or sol_score[1] >= current_score[1]):
                 current_solution = solution
                 current_score = sol_score
     print(f"Finished {step_count} steps. Approx.score={current_score}")
