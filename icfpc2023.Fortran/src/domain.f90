@@ -155,7 +155,7 @@ contains
     integer :: i, j
     allocate(Tma(this%N_musicians, this%N_attendees))
     do concurrent (i = 1:this%N_attendees, j = 1:this%N_musicians)
-      Tma(j, i) = this%attendees(i)%tastes(this%musicians(j)%instrument)
+      Tma(j, i) = this%attendees(i)%tastes(this%musicians(j)%instrument)*this%musicians(j)%volume
     end do
   end function room_build_taste_matrix
 
@@ -209,20 +209,14 @@ contains
     Dma = this%build_MA_invsquareddistance_matrix()
     Bma = this%build_block_matrix()
     if (this%version == 1) then
-      do i = 1, this%N_musicians
-        Tma(i,:) = Tma(i,:) * this%musicians(i)%volume
-      end do
-      energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
+      energy = sum(ceiling(1e6_8 * Tma * Dma * Bma, kind=8))
     else
       Dmm = this%build_MM_distance_matrix()
       Dm = 1._8 + sum(Dmm, dim=1)
-      do i = 1, this%N_musicians
-        Dm(i) = Dm(i) * this%musicians(i)%volume
-      end do
       do i = 1, this%N_attendees
         Tma(:,i) = Tma(:,i) * Dm
       end do
-      energy = sum(ceiling(1e6_8 * Tma * Dma * Bma))
+      energy = sum(ceiling(1e6_8 * Tma * Dma * Bma, kind=8))
       energy = 0.0
       do i = 1, this%N_attendees
         do j = 1, this%N_musicians
