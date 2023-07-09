@@ -79,3 +79,8 @@ type Stadium =
         // doesn't exceed the length of the segment
         let segment_length = this.Center1.DistanceTo(this.Center2)
         closest.DistanceTo(this.Center1) < segment_length && closest.DistanceTo(this.Center2) < segment_length
+
+    member this.MainCenter: PointD =
+        PointD((this.Center1.X + this.Center2.X) / 2.0, (this.Center1.Y + this.Center2.Y) / 2.0)
+    member this.MainDiameter: double = this.Radius * 2.0 + this.Center1.DistanceTo(this.Center2)
+    member this.MainRadius: double = this.MainDiameter / 2.0

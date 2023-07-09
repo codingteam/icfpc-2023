@@ -1,4 +1,5 @@
 open System
+open System.Diagnostics
 open System.IO
 open System.Text
 open System.Threading.Tasks
@@ -256,10 +257,12 @@ let main(args: string[]): int =
         let problem = readProblem problemId
         match tryReadSolution problemId with
         | Some(solution, solutionMetadata) ->
+            let sw = Stopwatch.StartNew()
             let updatedSolutionMetadata = {
                 Score = Scoring.CalculateScore problem solution
                 SolverName = solutionMetadata.SolverName
             }
+            printfn $"Score calculated in {sw.Elapsed}."
             writeSolution problemId solution updatedSolutionMetadata
         | _ -> printfn $"Problem {problemId} is not solved yet!"
 

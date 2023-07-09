@@ -9,6 +9,7 @@
     <Compile Include="Geometry.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="Scoring.fs" />
+    <None Include="Scoring.txt" />
     <Compile Include="DirectoryLookup.fs" />
     <Compile Include="Converter.fs" />
     <Compile Include="Solvers\DummySolver.fs" />
@@ -23,7 +24,12 @@
 
   <ItemGroup>
     <PackageReference Include="Accord.Math" Version="3.8.2-alpha" />
+<!--    <PackageReference Include="KdTree" Version="1.4.1" />-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KdTree\KdTreeLib\KdTreeLib.csproj" />
   </ItemGroup>
 
 </Project>
