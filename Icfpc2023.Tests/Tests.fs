@@ -3,7 +3,6 @@ module Tests
 open System.IO
 
 open Icfpc2023
-open Icfpc2023.Scoring
 open Xunit
 
 [<Fact>]
@@ -91,3 +90,19 @@ let ``Stadium detects intersection when blocking musician is right on the line``
         }
     let blockingMusician = PointD(1100.0, 150.0)
     Assert.True(stadium.Contains blockingMusician)
+
+[<Fact>]
+let ``CalculateScore for problem 1``(): unit =
+    let problem = JsonDefs.ReadProblemFromFile(Path.Combine(DirectoryLookup.problemsDir, "1.json"))
+    let solution = JsonDefs.ReadSolutionFromFile(Path.Combine(DirectoryLookup.solutionsDir, "1.json"))
+    let score = Scoring.CalculateScore problem solution
+    let meta = JsonDefs.ReadSolutionMetadataFromFile(Path.Combine(DirectoryLookup.solutionsDir, "1.meta.json"))
+    Assert.Equal(meta.Score, score)
+
+[<Fact>]
+let ``CalculateScore for problem 30``(): unit =
+    let problem = JsonDefs.ReadProblemFromFile(Path.Combine(DirectoryLookup.problemsDir, "30.json"))
+    let solution = JsonDefs.ReadSolutionFromFile(Path.Combine(DirectoryLookup.solutionsDir, "30.json"))
+    let score = Scoring.CalculateScore problem solution
+    let meta = JsonDefs.ReadSolutionMetadataFromFile(Path.Combine(DirectoryLookup.solutionsDir, "30.meta.json"))
+    Assert.Equal(meta.Score, score)
