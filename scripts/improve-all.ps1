@@ -7,6 +7,6 @@ dotnet build --configuration Release
 
 $From..$To | ForEach-Object -Parallel {
     Write-Host "Improving $_"
-    dotnet run --configuration Release --project Icfpc2023 -- improve $_ $Improver --preserve-best
+    dotnet run --no-build --configuration Release --project Icfpc2023 -- improve $_ $Improver --preserve-best
     Write-Host "Improving $_"
 }
