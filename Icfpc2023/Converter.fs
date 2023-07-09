@@ -24,8 +24,12 @@ let ToIni (problem: Problem) (solution: Solution option): string =
         solution
         |> Option.map(fun s -> Seq.ofArray s.Placements)
         |> Option.defaultValue(Seq.initInfinite (fun _ -> PointD(-1.0, -1.0)))
-    for instrument, position in Seq.zip problem.Musicians musicianPositions do
-        result.AppendLine $"{string position.X} {string position.Y} {string instrument}" |> ignore
+    let musicianVolumes =
+        solution
+        |> Option.map(fun s -> Seq.ofArray s.Volumes)
+        |> Option.defaultValue(Seq.initInfinite (fun _ -> 1.0))
+    for instrument, position, volume in Seq.zip3 problem.Musicians musicianPositions musicianVolumes do
+        result.AppendLine $"{string position.X} {string position.Y} {string instrument} {string volume}" |> ignore
     result.AppendLine $"""[attendees]
 {string problem.Attendees.Length}""" |> ignore
     for attendee in problem.Attendees do
