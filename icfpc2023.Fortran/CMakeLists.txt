@@ -20,15 +20,15 @@ if(IPO_AVAILABLE)
 endif()
 if("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
   target_compile_options(${PN} PRIVATE
-    $<$<COMPILE_LANGUAGE:Fortran>:-std=f2018 -ffree-line-length-none>
+    $<$<COMPILE_LANGUAGE:Fortran>:-std=f2018 -ffree-line-length-none -march=native>
 )
 elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
   target_compile_options(${PN} PRIVATE
-    $<$<COMPILE_LANGUAGE:Fortran>:-stand f18>
+    $<$<COMPILE_LANGUAGE:Fortran>:-stand f18 -xHost>
 )
 elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM")
   target_compile_options(${PN} PRIVATE
-    $<$<COMPILE_LANGUAGE:Fortran>:-stand f18>
+    $<$<COMPILE_LANGUAGE:Fortran>:-stand f18 -xHost>
 )
 else()
   message(FATAL_ERROR "Unknown Fortran compiler ID: ${CMAKE_Fortran_COMPILER_ID}")
