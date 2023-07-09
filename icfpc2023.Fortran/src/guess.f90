@@ -102,7 +102,7 @@ contains
                                     min(maxx, grid(layer)%pos(max_pos(1))%x + 10._8), &
                                     max(miny, grid(layer)%pos(max_pos(1))%y - 10._8), &
                                     min(maxy, grid(layer)%pos(max_pos(1))%y + 10._8), &
-                                    0.25_8)
+                                    0.5_8)
       musician%instrument = layer
       do i = 1, size(additional%skip)
         musician%pos = additional%pos(i)
