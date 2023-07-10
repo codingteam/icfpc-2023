@@ -24,13 +24,13 @@ let Solve (initialSolutionOpt: Solution option) (problem: Problem): Solution =
         match initialSolutionOpt with
         | Some solution ->
             let initialScore = Scoring.CalculateScore problem solution
-            printfn $"λ: Initial score: {initialScore}"
+            printfn $"∇: Initial score: {initialScore}"
             solution
         | None ->
-            printfn $"λ: Computing initial solution (foxtranV1)..."
+            printfn $"∇: Computing initial solution (foxtranV1)..."
             let initialSolution = FoxtranSolver.FoxtranSolveV1(problem)
             let initialScore = Scoring.CalculateScore problem initialSolution
-            printfn $"λ: Initial score: {initialScore}"
+            printfn $"∇: Initial score: {initialScore}"
             initialSolution
 
     let initialGuess = initialSolution.Placements |> pointsToArray
@@ -80,3 +80,49 @@ let private xsToPoints (array: double[]) =
     array
     |> Seq.map (fun x -> PointD(x, 10.0))
     |> Seq.toArray
+
+let SolveHorizontal (initialSolutionOpt: Solution option) (problem: Problem): Solution =
+    let initialSolution =
+        match initialSolutionOpt with
+        | Some solution ->
+            let initialScore = Scoring.CalculateScore problem solution
+            printfn $"∇: Initial score: {initialScore}"
+            solution
+        | None ->
+            printfn $"∇: Computing initial solution (randomDummyV1)..."
+            let initialSolution = DummySolver.RandomDummyV1(problem)
+            let initialScore = Scoring.CalculateScore problem initialSolution
+            printfn $"∇: Initial score: {initialScore}"
+            initialSolution
+
+    let initialGuess = initialSolution.Placements |> pointsToXs
+
+    let objective = fun point ->
+        Scoring.CalculateScore problem { initialSolution with Placements = point |> xsToPoints }
+
+    let method =
+        NelderMead(
+            numberOfVariables = problem.Musicians.Length,
+            ``function`` = objective)
+
+    let lowerBounds = method.LowerBounds
+    for i = 0 to problem.Musicians.Length - 1 do
+        lowerBounds[i] <- problem.StageBottomLeft.X + MusicianDeadZoneRadius
+
+    let upperBounds = method.UpperBounds
+    for i = 0 to problem.Musicians.Length - 1 do
+        upperBounds[i] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
+
+    let step = 50.0
+    let stepSize = method.StepSize
+    for i = 0 to problem.Musicians.Length - 1 do
+        stepSize[i] <- step
+
+    let success = method.Maximize(initialGuess)
+    printfn $"∇: Converged? {success}, status {method.Status}"
+
+    let solution = method.Solution
+    let score = Scoring.CalculateScore problem { initialSolution with Placements = solution |> xsToPoints }
+    printfn $"∇: Current score: {score}"
+
+    { initialSolution with Placements = solution |> xsToPoints }

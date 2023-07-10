@@ -30,6 +30,7 @@ let readToken() =
 let nondeterministicSolvers = Map [
     "randomDummyV1", DummySolver.RandomDummyV1
     "randomDummyV2", DummySolver.RandomDummyV2
+    "derfree_hor", DerFreeSolver.SolveHorizontal None
 ]
 
 let experimentalSolvers = Map [
@@ -269,6 +270,10 @@ let main(args: string[]): int =
 
     | [| "improve"; Parse(problemId); solverName; "--preserve-best" |] ->
         improveCommand problemId solverName true
+
+    | [| "find"; Parse(problemId); solverName |] ->
+        while true do
+            solveCommand problemId solverName true
 
     | [| "score"; Parse(problemId) |] ->
         match tryReadSolution problemId with
