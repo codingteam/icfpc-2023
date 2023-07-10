@@ -7,12 +7,12 @@ https://icfpcontest2023.github.io/
 
 Team Members
 ------------
-- @Akon32
-- @ForNeVeR
-- @Minoru
-- @foxtran
-- @gsomix
-- @portnov
+- [@Akon32](https://github.com/Akon32)
+- [@ForNeVeR](https://github.com/ForNeVeR): [link to report in English](https://fornever.me/en/posts/2023-07-10.icfpc-2023.html)
+- [@Minoru](https://github.com/Minoru)
+- [@foxtran](https://github.com/foxtran)
+- [@gsomix](https://github.com/gsomix)
+- [@portnov](https://github.com/portnov)
 
 Latest available rating: we've had 51'st place with a score of 97,433,577,912.
 
