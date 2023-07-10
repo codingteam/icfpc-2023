@@ -3,7 +3,18 @@ icfpc-2023
 codingteam's submission for the ICFP Contest 2023.
 
 https://icfpcontest2023.github.io/
-- July 7th, 12:00 UTC (noon) to July 10th, 12:00 UTC
+- July 7th, 12:00 UTC (noon) to July 10th, 12:00 UTC 2023
+
+Team Members
+------------
+- @Akon32
+- @ForNeVeR
+- @Minoru
+- @foxtran
+- @gsomix
+- @portnov
+
+Latest available rating: we've had 51'st place with a score of 97,433,577,912.
 
 Credentials and Tokens
 ----------------------
