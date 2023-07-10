@@ -113,7 +113,7 @@ let SolveHorizontal (initialSolutionOpt: Solution option) (problem: Problem): So
     for i = 0 to problem.Musicians.Length - 1 do
         upperBounds[i] <- problem.StageBottomLeft.X + problem.StageWidth - MusicianDeadZoneRadius
 
-    let step = 50.0
+    let step = 5.0
     let stepSize = method.StepSize
     for i = 0 to problem.Musicians.Length - 1 do
         stepSize[i] <- step

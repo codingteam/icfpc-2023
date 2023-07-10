@@ -1,10 +1,10 @@
 module Icfpc2023.DummySolver
 
-let private random = System.Random()
+let private Random = System.Random()
 
 let private shuffle<'T>(a: 'T[]) =
     for i in 0 .. a.Length - 1 do
-        let j = random.Next(i, a.Length)
+        let j = Random.Next(i, a.Length)
         let ai = a.[i]
         a.[i] <- a.[j]
         a.[j] <- ai
