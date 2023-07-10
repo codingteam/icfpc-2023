@@ -54,3 +54,13 @@ type MainWindowViewModel() =
             this.LoadProblemById newProblem
         with
         | ex -> eprintfn $"Error: {ex.Message}\r\n{ex.StackTrace}"
+
+    member this.SaveSolution(): unit =
+        this.Field.Solution
+        |> Option.iter(fun s ->
+            let score = Scoring.CalculateScore this.Field.Problem s
+            let metadata = { Score = score; SolverName = "handmade" }
+            Program.writeSolution (int this.ProblemId) s metadata
+            this.Field.SolutionMetadata <- Some metadata
+            this.LoadProblemById(int this.ProblemId)
+        )
