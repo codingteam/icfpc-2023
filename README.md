@@ -9,7 +9,7 @@ Team Members
 ------------
 - [@Akon32](https://github.com/Akon32)
 - [@ForNeVeR](https://github.com/ForNeVeR): [link to report in English](https://fornever.me/en/posts/2023-07-10.icfpc-2023.html)
-- [@Minoru](https://github.com/Minoru)
+- [@Minoru](https://github.com/Minoru): [link to report in Russian](https://blog.debiania.in.ua/posts/2023-07-16-icfpc-2023.html)
 - [@foxtran](https://github.com/foxtran)
 - [@gsomix](https://github.com/gsomix)
 - [@portnov](https://github.com/portnov)
