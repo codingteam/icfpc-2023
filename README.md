@@ -2,6 +2,11 @@ icfpc-2023
 ==========
 codingteam's submission for the ICFP Contest 2023.
 
+**News**: this year, [we won the judges' prize][discord.announcement]:
+
+> Finally, the judges prize was attributed to team Codingteam, whose writeup we really enjoyed reading (and the mix of F# and Fortran in their solution was both surprising and fun to see)
+
+
 https://icfpcontest2023.github.io/
 - July 7th, 12:00 UTC (noon) to July 10th, 12:00 UTC 2023
 
@@ -162,3 +167,5 @@ Fee free to use editor of choice, but the easiest tools to get started are:
   - Open the `.sln` file and then hit the green **Run** button to get started
 
 Other viable options are [Vim](https://github.com/ionide/Ionide-vim), [Emacs](https://github.com/fsharp/emacs-fsharp-mode), and any editor with LSP support via [FsAutoComplete](https://github.com/fsharp/FsAutoComplete).
+
+[discord.announcement]: https://discord.com/channels/1118159165060292668/1127265066924912751/1148988499576496168
